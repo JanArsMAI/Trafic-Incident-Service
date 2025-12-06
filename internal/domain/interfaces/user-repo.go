@@ -7,10 +7,12 @@ import (
 )
 
 type UserRepo interface {
-	AddUser(ctx context.Context, u *entity.User) error
+	AddUser(ctx context.Context, u *entity.User) (int, error)
 	GetUser(ctx context.Context, id int) (*entity.User, error)
 	UpdateUser(ctx context.Context, u *entity.User) error
 	DeleteUser(ctx context.Context, id int) error
 	GetUserByUsername(ctx context.Context, name string) (*entity.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetAll(ctx context.Context, chunk, count int) ([]entity.User, error)
+	GetById(ctx context.Context, id int) (*entity.User, error)
 }
