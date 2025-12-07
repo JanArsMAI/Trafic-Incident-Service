@@ -1,13 +1,13 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
     description TEXT
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE users (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE drivers (
+CREATE TABLE IF NOT EXISTS drivers (
     id SERIAL PRIMARY KEY,
     full_name VARCHAR(200) NOT NULL,
     date_of_birth DATE NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE drivers (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE vehicles (
+CREATE TABLE IF NOT EXISTS vehicles (
     id SERIAL PRIMARY KEY,
     plate_number VARCHAR(20) NOT NULL UNIQUE,
     model VARCHAR(100) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE vehicles (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE inspectors (
+CREATE TABLE IF NOT EXISTS inspectors (
     id SERIAL PRIMARY KEY,
     full_name VARCHAR(200) NOT NULL,
     badge_number VARCHAR(50) UNIQUE NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE inspectors (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE weather (
+CREATE TABLE IF NOT EXISTS weather (
     id SERIAL PRIMARY KEY,
     temperature NUMERIC(5,2),
     precipitation VARCHAR(50),
@@ -56,7 +56,7 @@ CREATE TABLE weather (
     description TEXT
 );
 
-CREATE TABLE accidents (
+CREATE TABLE IF NOT EXISTS accidents (
     id SERIAL PRIMARY KEY,
     location VARCHAR(255) NOT NULL,
     date_time TIMESTAMP NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE accidents (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE accident_participants (
+CREATE TABLE IF NOT EXISTS accident_participants (
     id SERIAL PRIMARY KEY,
     accident_id INTEGER NOT NULL REFERENCES accidents(id) ON DELETE CASCADE ON UPDATE CASCADE,
     driver_id INTEGER NOT NULL REFERENCES drivers(id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -76,20 +76,20 @@ CREATE TABLE accident_participants (
     UNIQUE(accident_id, driver_id, vehicle_id)
 );
 
-CREATE TABLE violations (
+CREATE TABLE IF NOT EXISTS violations (
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     description TEXT NOT NULL
 );
 
-CREATE TABLE participant_violations (
+CREATE TABLE IF NOT EXISTS participant_violations (
     id SERIAL PRIMARY KEY,
     participant_id INTEGER NOT NULL REFERENCES accident_participants(id) ON DELETE CASCADE,
     violation_id INTEGER NOT NULL REFERENCES violations(id) ON DELETE RESTRICT,
     UNIQUE(participant_id, violation_id)
 );
 
-CREATE TABLE penalties (
+CREATE TABLE IF NOT EXISTS penalties (
     id SERIAL PRIMARY KEY,
     participant_id INTEGER NOT NULL REFERENCES accident_participants(id) ON DELETE CASCADE,
     amount NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
@@ -98,7 +98,7 @@ CREATE TABLE penalties (
     status VARCHAR(50) CHECK (status IN ('unpaid','paid','canceled')) NOT NULL DEFAULT 'unpaid'
 );
 
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
     id SERIAL PRIMARY KEY,
     accident_id INTEGER NOT NULL REFERENCES accidents(id) ON DELETE CASCADE,
     inspector_id INTEGER REFERENCES inspectors(id) ON DELETE SET NULL,
@@ -107,7 +107,7 @@ CREATE TABLE reports (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     action VARCHAR(50) NOT NULL,

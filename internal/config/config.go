@@ -17,7 +17,8 @@ type AppConfig struct {
 }
 
 type ServerConfig struct {
-	Port int `yaml:"port"`
+	Port   int    `yaml:"port"`
+	Secret string `yaml:"secret"`
 }
 
 type LoggingConfig struct {

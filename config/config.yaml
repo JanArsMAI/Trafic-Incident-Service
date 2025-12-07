@@ -1,5 +1,6 @@
 app:
   server:
     port: 8080
+    secret: 98525090dbae6e1720a3e617ccc039d39b000f7726a0105638bc6ea8d48a2a97
   logging:
     level: info #можно поставить уровень логирования debug

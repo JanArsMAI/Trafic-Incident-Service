@@ -8,6 +8,7 @@ type AddUserDto struct {
 }
 
 type UpdateUserDto struct {
+	Id       int     `json:"id"`
 	Username *string `json:"name"`
 	Password *string `json:"password"`
 	Email    *string `json:"email"`
@@ -17,4 +18,9 @@ type UpdateUserDto struct {
 type LoginDto struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type GetAllUsersDto struct {
+	Chunk int `json:"num_chunk"`
+	Size  int `json:"size"`
 }
