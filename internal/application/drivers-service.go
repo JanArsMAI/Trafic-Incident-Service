@@ -6,6 +6,7 @@ import (
 	"time"
 
 	entity "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/driver"
+	entityVehicle "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/vehicle"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/infrastructure/repos"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/presentation/dto"
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,8 @@ var (
 	ErrIncorectExperience                   = errors.New("error. experience is negative")
 	ErrDriverWithThisLicenseIsAlreadyExists = errors.New("error. Driver With this license id is already exists")
 	ErrDriverIsNotFound                     = errors.New("error. Driver is not found")
+	ErrVehicleWithThisNumberIsAlreadyExists = errors.New("error. Vehicle with this number is already exists")
+	ErrVehicleIsNotFound                    = errors.New("error. Vehicle with this number is not found")
 )
 
 func (s *DriverService) AddDriver(ctx *gin.Context, driver dto.AddDriverDto) (int, error) {
@@ -157,4 +160,106 @@ func (s *DriverService) GetDriversByName(ctx *gin.Context, name string) ([]dto.D
 		})
 	}
 	return res, nil
+}
+
+func (s *DriverService) AddVehicle(ctx *gin.Context, vehicle dto.AddVehicleDto) (int, error) {
+	if vehicle.Number == "" {
+		return -1, ErrBadRequest
+	}
+	if vehicle.Model == "" {
+		return -1, ErrBadRequest
+	}
+	if vehicle.Year <= 1950 || vehicle.Year > time.Now().Year()+1 {
+		return -1, ErrBadRequest
+	}
+	if vehicle.Type == "" {
+		return -1, ErrBadRequest
+	}
+	if vehicle.Owner <= 0 {
+		return -1, ErrBadRequest
+	}
+
+	existing, err := s.repo.GetVehicleByNumber(ctx, vehicle.Number)
+	if err != nil && err != repos.ErrVehicleIsNotFound {
+		return -1, fmt.Errorf("failed to check vehicle uniqueness: %w", err)
+	}
+	if existing != nil {
+		return -1, ErrVehicleWithThisNumberIsAlreadyExists
+	}
+	ent := entityVehicle.Vehicle{
+		Number: vehicle.Number,
+		Model:  vehicle.Model,
+		Year:   vehicle.Year,
+		Type:   vehicle.Type,
+		Owner:  vehicle.Owner,
+	}
+	id, err := s.repo.AddVehicle(ctx, ent)
+	if err != nil {
+		return -1, fmt.Errorf("failed to add vehicle: %w", err)
+	}
+	return id, nil
+}
+
+func (s *DriverService) UpdateVehicle(ctx *gin.Context, data dto.UpdateVehicleDto) error {
+	if data.Number == "" {
+		return ErrBadRequest
+	}
+	vehicle, err := s.repo.GetVehicleByNumber(ctx, data.Number)
+	if err != nil {
+		if err == repos.ErrVehicleIsNotFound {
+			return ErrVehicleIsNotFound
+		}
+		return fmt.Errorf("failed to get vehicle by number: %w", err)
+	}
+	if data.Model != nil {
+		if *data.Model == "" {
+			return ErrBadRequest
+		}
+		vehicle.Model = *data.Model
+	}
+
+	if data.Type != nil {
+		if *data.Type == "" {
+			return ErrBadRequest
+		}
+		vehicle.Type = *data.Type
+	}
+
+	if data.Year != nil {
+		if *data.Year <= 1950 || *data.Year > time.Now().Year()+1 {
+			return ErrBadRequest
+		}
+		vehicle.Year = *data.Year
+	}
+
+	if data.Owner != nil {
+		if *data.Owner <= 0 {
+			return ErrBadRequest
+		}
+		vehicle.Owner = *data.Owner
+	}
+	if err := s.repo.UpdateVehicle(ctx, *vehicle); err != nil {
+		return fmt.Errorf("failed to update vehicle: %w", err)
+	}
+
+	return nil
+}
+
+func (s *DriverService) GetVehicle(ctx *gin.Context, number string) (*dto.VehicleResponse, error) {
+	vehicle, err := s.repo.GetVehicleByNumber(ctx, number)
+	if err != nil {
+		if errors.Is(err, repos.ErrVehicleIsNotFound) {
+			return nil, ErrVehicleIsNotFound
+		}
+		return nil, err
+	}
+	return &dto.VehicleResponse{
+		Id:        vehicle.Id,
+		Number:    vehicle.Number,
+		Model:     vehicle.Model,
+		Year:      vehicle.Year,
+		Type:      vehicle.Type,
+		Owner:     vehicle.Owner,
+		CreatedAt: vehicle.CreatedAt,
+	}, nil
 }

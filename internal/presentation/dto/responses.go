@@ -37,3 +37,13 @@ type DriverResponse struct {
 type DriversResponse struct {
 	Drivers []DriverResponse `json:"drivers"`
 }
+
+type VehicleResponse struct {
+	Id        int       `json:"id"`
+	Number    string    `json:"number"`
+	Model     string    `json:"model"`
+	Year      int       `json:"year"`
+	Type      string    `json:"type"`
+	Owner     int       `json:"owner"`
+	CreatedAt time.Time `json:"created_at"`
+}

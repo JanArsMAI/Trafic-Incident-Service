@@ -9,6 +9,6 @@ import (
 type DriverService interface {
 	GetDriverByLicense(ctx *gin.Context, licenseNum string) (*entity.Driver, error)
 	GetDriversByName(ctx *gin.Context, name string) ([]dto.DriverResponse, error)
-	UpdateDriverInfo(ctx *gin.Context, dto dto.UpdateDriverDto) error
 	AddDriver(ctx *gin.Context, driver dto.AddDriverDto) (int, error)
+	UpdateDriverInfo(ctx *gin.Context, dto dto.UpdateDriverDto) error
 }

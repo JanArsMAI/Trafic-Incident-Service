@@ -36,3 +36,19 @@ type UpdateDriverDto struct {
 	LicenseIssueDate *string `json:"license_issue_date"`
 	Experience       *int    `json:"experience"`
 }
+
+type AddVehicleDto struct {
+	Number string `json:"number"`
+	Model  string `json:"model"`
+	Year   int    `json:"year"`
+	Type   string `json:"type"`
+	Owner  int    `json:"owner"`
+}
+
+type UpdateVehicleDto struct {
+	Number string  `json:"number"`
+	Model  *string `json:"model"`
+	Owner  *int    `json:"owner"`
+	Type   *string `json:"type"`
+	Year   *int    `json:"year"`
+}

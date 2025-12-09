@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	ErrDriverIsNotFound = errors.New("error. driver is not found")
+	ErrDriverIsNotFound  = errors.New("error. driver is not found")
+	ErrVehicleIsNotFound = errors.New("error. Vehicle is not found")
 )
 
 type PostgresDriversRepo struct {
@@ -233,4 +234,81 @@ func (p *PostgresDriversRepo) AddVehicle(ctx *gin.Context, vehicle entityVehicle
 		return -1, err
 	}
 	return newID, nil
+}
+
+func (p *PostgresDriversRepo) UpdateVehicle(ctx *gin.Context, vehicle entityVehicle.Vehicle) error {
+	return p.withCurUserTx(ctx, func(tx *sql.Tx) error {
+		query := `
+			UPDATE vehicles
+			SET
+				plate_number = $1,
+				model = $2,
+				year = $3,
+				vehicle_type = $4,
+				owner_driver_id = $5
+			WHERE id = $6;
+		`
+
+		res, err := tx.ExecContext(
+			ctx,
+			query,
+			vehicle.Number,
+			vehicle.Model,
+			vehicle.Year,
+			vehicle.Type,
+			vehicle.Owner,
+			vehicle.Id,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to update vehicle: %w", err)
+		}
+
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("failed to get affected rows: %w", err)
+		}
+
+		if rows == 0 {
+			return ErrVehicleIsNotFound
+		}
+
+		return nil
+	})
+}
+
+func (p *PostgresDriversRepo) GetVehicleByNumber(ctx *gin.Context, number string) (*entityVehicle.Vehicle, error) {
+	query := `
+		SELECT
+		 id,
+		 plate_number,
+		 model,
+		 year,
+		 vehicle_type,
+		 owner_driver_id,
+		 created_at
+		 FROM vehicles 
+		 WHERE plate_number=$1;
+	`
+	var dto dto.VehicleDto
+	if err := p.db.Get(&dto, query, number); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrVehicleIsNotFound
+		}
+		return nil, fmt.Errorf("error to get vehicle: %w", err)
+	}
+	var owner int
+	if dto.Owner.Valid {
+		owner = int(dto.Owner.Int32)
+	} else {
+		owner = 0
+	}
+	return &entityVehicle.Vehicle{
+		Id:        dto.Id,
+		Number:    dto.Number,
+		Model:     dto.Model,
+		Year:      dto.Year,
+		Type:      dto.Type,
+		Owner:     owner,
+		CreatedAt: dto.CreatedAt,
+	}, nil
 }
