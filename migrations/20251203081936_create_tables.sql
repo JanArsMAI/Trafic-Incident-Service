@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS inspectors (
     badge_number VARCHAR(50) UNIQUE NOT NULL,
     department VARCHAR(100) NOT NULL,
     rank VARCHAR(100),
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 

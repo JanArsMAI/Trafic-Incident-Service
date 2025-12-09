@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/JanArsMAI/Trafic-Incident-Service.git/docs"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/config"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/di"
 	zapLogger "github.com/JanArsMAI/Trafic-Incident-Service.git/logger"
@@ -37,6 +38,16 @@ func listenRESTServer(r *gin.Engine, logger *zap.Logger, cfg config.ServerConfig
 	return server
 }
 
+// @title           Traffic Incident Service API
+// @version         1.0
+// @description     API для управления пользователями.
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.apikey BearerAuth
+// @in cookie
+// @name access_token
 func main() {
 	err := godotenv.Load("./.env")
 	if err != nil {

@@ -1,0 +1,496 @@
+basePath: /
+definitions:
+  dto.AddDriverDto:
+    properties:
+      date_birth:
+        type: string
+      experience:
+        type: integer
+      license_issue_date:
+        type: string
+      license_number:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.AddUserDto:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  dto.DriverResponse:
+    properties:
+      accidents:
+        type: integer
+      birthdate:
+        type: string
+      created_at:
+        type: string
+      experience:
+        type: integer
+      full_name:
+        type: string
+      id:
+        type: integer
+      license_exp_date:
+        type: string
+      license_id:
+        type: string
+    type: object
+  dto.DriversResponse:
+    properties:
+      drivers:
+        items:
+          $ref: '#/definitions/dto.DriverResponse'
+        type: array
+    type: object
+  dto.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.LoginDto:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.UpdateDriverDto:
+    properties:
+      date_birth:
+        type: string
+      experience:
+        type: integer
+      license:
+        type: string
+      license_issue_date:
+        type: string
+      name:
+        type: string
+      new_license:
+        type: string
+    type: object
+  dto.UpdateUserDto:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  dto.UserDto:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      passwordHash:
+        type: string
+      role:
+        type: integer
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  dto.UsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/dto.UserResponse'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления пользователями.
+  title: Traffic Incident Service API
+  version: "1.0"
+paths:
+  /drivers/add:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового водителя по переданным данным
+      parameters:
+      - description: Данные водителя
+        in: body
+        name: driver
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddDriverDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'driver_id: ID созданного водителя'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректные данные или неверный формат даты
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Водитель с таким номером лицензии уже существует
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Добавить нового водителя
+      tags:
+      - Водители
+  /drivers/get_by_license/{license}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает данные водителя
+      parameters:
+      - description: Номер лицензии
+        in: path
+        name: license
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DriverResponse'
+        "400":
+          description: Пустой license
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Водитель не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить водителя по номеру лицензии
+      tags:
+      - Водители
+  /drivers/get_by_name/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех водителей с указанным именем (частичное
+        совпадение допускается)
+      parameters:
+      - description: Имя водителя
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DriversResponse'
+        "400":
+          description: Пустое имя
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить список водителей по имени
+      tags:
+      - Водители
+  /drivers/update:
+    patch:
+      consumes:
+      - application/json
+      description: Частичное обновление данных водителя по номеру лицензии
+      parameters:
+      - description: Данные для обновления
+        in: body
+        name: driver
+        schema:
+          $ref: '#/definitions/dto.UpdateDriverDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Некорректные данные
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Водитель не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Новый номер лицензии уже используется
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Обновить данные водителя
+      tags:
+      - Водители
+  /users/add:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя. Доступно только администратору.
+      parameters:
+      - description: Данные нового пользователя
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddUserDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ID созданного пользователя
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Некорректные данные / email занят / неверная роль
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Добавление пользователя
+      tags:
+      - Пользователи
+  /users/delete/{id}:
+    delete:
+      description: Удаляет пользователя по ID. Доступно только администратору.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Пользователь успешно удалён
+        "400":
+          description: Некорректный ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Удаление пользователя
+      tags:
+      - Пользователи
+  /users/get_all:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает пользователей постранично (через query-параметры chunk
+        и size)
+      parameters:
+      - description: Номер страницы (chunk)
+        in: query
+        name: chunk
+        required: true
+        type: integer
+      - description: Размер страницы (size)
+        in: query
+        name: size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UsersResponse'
+        "400":
+          description: Неверные параметры
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить список всех пользователей
+      tags:
+      - Пользователи
+  /users/get_user/{name}:
+    get:
+      description: Возвращает данные пользователя по имени. Доступно только администратору.
+      parameters:
+      - description: Имя пользователя
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные пользователя
+          schema:
+            $ref: '#/definitions/dto.UserDto'
+        "400":
+          description: Пустое имя
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получение пользователя по имени
+      tags:
+      - Пользователи
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизует пользователя и устанавливает cookie access_token.
+      parameters:
+      - description: Email и пароль
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Авторизация успешна, cookie установлена
+        "400":
+          description: Ошибка парсинга JSON
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Неверный пароль
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Авторизация пользователя
+      tags:
+      - Авторизация
+  /users/logout:
+    post:
+      description: Удаляет cookie access_token и завершает пользовательскую сессию.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сообщение об успешном выходе
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Необходимо выполнить вход
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Выход из системы
+      tags:
+      - Авторизация
+  /users/update:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет данные пользователя. Администратор может обновлять всех,
+        обычный пользователь — только себя.
+      parameters:
+      - description: Новые данные пользователя
+        in: body
+        name: user
+        schema:
+          $ref: '#/definitions/dto.UpdateUserDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ID обновлённого пользователя и статус
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректные данные / неверная роль / неверный email
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Обновление пользователя
+      tags:
+      - Пользователи
+securityDefinitions:
+  BearerAuth:
+    in: cookie
+    name: access_token
+    type: apiKey
+swagger: "2.0"

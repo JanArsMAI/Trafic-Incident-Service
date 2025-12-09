@@ -1,7 +1,6 @@
 package di
 
 import (
-	"context"
 	"time"
 
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/application"
@@ -21,10 +20,15 @@ func ConfigureApp(r *gin.Engine, logger *zap.Logger, cfg config.ServerConfig) fu
 	if err != nil {
 		logger.Fatal("failed to connect to db", zap.Error(err))
 	}
-	repo := repos.NewPostgresUserRepo(db)
+
+	userRepo := repos.NewPostgresUserRepo(db)
+	driversRepo := repos.NewPostgresDriversRepo(db)
+
 	jwtSvc := jwt.NewJwtService(cfg.Secret, time.Duration(time.Hour))
-	svc := application.NewUserService(repo, jwtSvc)
-	res, err := svc.AddUser(context.Background(), &dto.AddUserDto{
+	userSvc := application.NewUserService(userRepo, jwtSvc)
+	driversSvc := application.NewDriverService(driversRepo)
+
+	res, err := userSvc.AddUser(&gin.Context{}, &dto.AddUserDto{
 		Username: "Admin",
 		Password: "admin",
 		Role:     "admin",
@@ -35,7 +39,7 @@ func ConfigureApp(r *gin.Engine, logger *zap.Logger, cfg config.ServerConfig) fu
 	} else {
 		logger.Info("user admin is created", zap.Int("id", res))
 	}
-	rest.InitRoutes(r, svc, jwtSvc, logger)
+	rest.InitRoutes(r, userSvc, jwtSvc, logger, driversSvc)
 	return func() {
 		_ = logger.Sync()
 	}

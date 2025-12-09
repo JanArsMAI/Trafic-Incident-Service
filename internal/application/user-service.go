@@ -1,7 +1,6 @@
 package application
 
 import (
-	"context"
 	"errors"
 	"strings"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/user/entity"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/infrastructure/repos"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/presentation/dto"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -55,7 +55,7 @@ func comparePassword(hash, password string) bool {
 	return err == nil
 }
 
-func (u *UserService) AddUser(ctx context.Context, userDto *dto.AddUserDto) (int, error) {
+func (u *UserService) AddUser(ctx *gin.Context, userDto *dto.AddUserDto) (int, error) {
 	_, err := u.repo.GetUserByEmail(ctx, userDto.Email)
 	if err != repos.ErrUserNotFound {
 		if err == nil {
@@ -87,9 +87,12 @@ func (u *UserService) AddUser(ctx context.Context, userDto *dto.AddUserDto) (int
 	return id, nil
 }
 
-func (u *UserService) UpdateUser(ctx context.Context, id int, dto *dto.UpdateUserDto) error {
+func (u *UserService) UpdateUser(ctx *gin.Context, id int, dto *dto.UpdateUserDto) error {
 	user, err := u.repo.GetUser(ctx, id)
 	if err != nil {
+		if errors.Is(err, repos.ErrUserNotFound) {
+			return ErrUserNotFound
+		}
 		return err
 	}
 	if dto.Username != nil {
@@ -126,7 +129,7 @@ func (u *UserService) UpdateUser(ctx context.Context, id int, dto *dto.UpdateUse
 	return nil
 }
 
-func (u *UserService) GetUserByUsername(ctx context.Context, name string) (*dto.UserResponse, error) {
+func (u *UserService) GetUserByUsername(ctx *gin.Context, name string) (*dto.UserResponse, error) {
 	user, err := u.repo.GetUserByUsername(ctx, name)
 	if err != nil {
 		if errors.Is(err, repos.ErrUserNotFound) {
@@ -148,7 +151,7 @@ func (u *UserService) GetUserByUsername(ctx context.Context, name string) (*dto.
 	}, nil
 }
 
-func (u *UserService) GetAllUsers(ctx context.Context, chunkNum, count int) ([]dto.UserResponse, error) {
+func (u *UserService) GetAllUsers(ctx *gin.Context, chunkNum, count int) ([]dto.UserResponse, error) {
 	users, err := u.repo.GetAll(ctx, chunkNum, count)
 	if err != nil {
 		return nil, err
@@ -171,7 +174,7 @@ func (u *UserService) GetAllUsers(ctx context.Context, chunkNum, count int) ([]d
 	return ans, nil
 }
 
-func (u *UserService) DeleteUser(ctx context.Context, id int) error {
+func (u *UserService) DeleteUser(ctx *gin.Context, id int) error {
 	err := u.repo.DeleteUser(ctx, id)
 	if err != nil {
 		if errors.Is(err, repos.ErrUserNotFound) {
@@ -182,7 +185,7 @@ func (u *UserService) DeleteUser(ctx context.Context, id int) error {
 	return nil
 }
 
-func (u *UserService) Login(ctx context.Context, data dto.LoginDto) (string, error) {
+func (u *UserService) Login(ctx *gin.Context, data dto.LoginDto) (string, error) {
 	user, err := u.repo.GetUserByEmail(ctx, data.Email)
 	if err != nil {
 		if errors.Is(err, repos.ErrUserNotFound) {

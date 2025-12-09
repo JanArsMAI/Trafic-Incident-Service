@@ -22,3 +22,18 @@ type ErrorResponse struct {
 type UsersResponse struct {
 	Users []UserResponse `json:"users"`
 }
+
+type DriverResponse struct {
+	Id               int       `json:"id"`
+	Fullname         string    `json:"full_name"`
+	DateOfBirth      time.Time `json:"birthdate"`
+	TotalAccidents   int       `json:"accidents"`
+	License          string    `json:"license_id"`
+	LicenseIssueDate time.Time `json:"license_exp_date"`
+	Experience       int       `json:"experience"`
+	CreatedAt        time.Time `json:"created_at"`
+}
+
+type DriversResponse struct {
+	Drivers []DriverResponse `json:"drivers"`
+}

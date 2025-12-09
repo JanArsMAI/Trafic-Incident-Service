@@ -27,6 +27,17 @@ func NewUserHandlers(svc interfaces.UserService, logger *zap.Logger, jwtService 
 	}
 }
 
+// AddUser godoc
+// @Summary      Добавление пользователя
+// @Description  Создаёт нового пользователя. Доступно только администратору.
+// @Tags         Пользователи
+// @Accept       json
+// @Produce      json
+// @Param        user  body      dto.AddUserDto  true  "Данные нового пользователя"
+// @Success      201   {object}  map[string]int  "ID созданного пользователя"
+// @Failure      400   {object}  dto.ErrorResponse "Некорректные данные / email занят / неверная роль"
+// @Failure      500   {object}  dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Router       /users/add [post]
 func (h *UserHandlers) AddUser(ctx *gin.Context) {
 	var reqBody dto.AddUserDto
 	if err := ctx.ShouldBindJSON(&reqBody); err != nil {
@@ -59,6 +70,19 @@ func (h *UserHandlers) AddUser(ctx *gin.Context) {
 	})
 }
 
+// UpdateUser godoc
+// @Summary      Обновление пользователя
+// @Description  Обновляет данные пользователя. Администратор может обновлять всех, обычный пользователь — только себя.
+// @Tags         Пользователи
+// @Accept       json
+// @Produce      json
+// @Param user body dto.UpdateUserDto false "Новые данные пользователя"
+// @Success      200   {object}  map[string]interface{} "ID обновлённого пользователя и статус"
+// @Failure      400   {object}  dto.ErrorResponse "Некорректные данные / неверная роль / неверный email"
+// @Failure      403   {object}  dto.ErrorResponse "Нет доступа"
+// @Failure      404   {object}  dto.ErrorResponse "Пользователь не найден"
+// @Failure      500   {object}  dto.ErrorResponse "Внутренняя ошибка"
+// @Router       /users/update [patch]
 func (h *UserHandlers) Update(ctx *gin.Context) {
 	var req dto.UpdateUserDto
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -134,6 +158,16 @@ func (h *UserHandlers) Update(ctx *gin.Context) {
 	})
 }
 
+// DeleteUser godoc
+// @Summary      Удаление пользователя
+// @Description  Удаляет пользователя по ID. Доступно только администратору.
+// @Tags         Пользователи
+// @Param        id   path      int  true  "ID пользователя"
+// @Success      200  "Пользователь успешно удалён"
+// @Failure      400  {object} dto.ErrorResponse "Некорректный ID"
+// @Failure      404  {object} dto.ErrorResponse "Пользователь не найден"
+// @Failure      500  {object} dto.ErrorResponse "Внутренняя ошибка"
+// @Router       /users/delete/{id} [delete]
 func (h *UserHandlers) DeleteUser(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	if idStr == "" {
@@ -162,6 +196,19 @@ func (h *UserHandlers) DeleteUser(ctx *gin.Context) {
 	h.logger.Info("Delete user: successfully deleted user", zap.Int("id", id))
 }
 
+// Login godoc
+// @Summary      Авторизация пользователя
+// @Description  Авторизует пользователя и устанавливает cookie access_token.
+// @Tags         Авторизация
+// @Accept       json
+// @Produce      json
+// @Param        credentials  body      dto.LoginDto  true  "Email и пароль"
+// @Success      200          "Авторизация успешна, cookie установлена"
+// @Failure      400          {object} dto.ErrorResponse "Ошибка парсинга JSON"
+// @Failure      401          {object} dto.ErrorResponse "Неверный пароль"
+// @Failure      404          {object} dto.ErrorResponse "Пользователь не найден"
+// @Failure      500          {object} dto.ErrorResponse "Внутренняя ошибка"
+// @Router       /users/login [post]
 func (h *UserHandlers) Login(ctx *gin.Context) {
 	var body dto.LoginDto
 	if err := ctx.ShouldBindJSON(&body); err != nil {
@@ -202,26 +249,65 @@ func (h *UserHandlers) Login(ctx *gin.Context) {
 	h.logger.Info("Login: authorized user", zap.String("email", body.Email))
 }
 
+// GetAllUsers godoc
+// @Summary Получить список всех пользователей
+// @Description Возвращает пользователей постранично (через query-параметры chunk и size)
+// @Tags  Пользователи
+// @Accept json
+// @Produce json
+// @Param chunk query int true "Номер страницы (chunk)"
+// @Param size query int true "Размер страницы (size)"
+// @Success 200 {object} dto.UsersResponse
+// @Failure 400 {object} dto.ErrorResponse "Неверные параметры"
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /users/get_all [get]
 func (h *UserHandlers) GetAllUsers(ctx *gin.Context) {
-	var body dto.GetAllUsersDto
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		h.logger.Error("Get All: error parsing json", zap.Error(err))
+	chunkStr := ctx.Query("chunk")
+	sizeStr := ctx.Query("size")
+
+	chunk, err := strconv.Atoi(chunkStr)
+	if err != nil || chunk <= 0 {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "error while parsing json",
+			Message: "invalid 'chunk' parameter",
 		})
 		return
 	}
-	users, err := h.svc.GetAllUsers(ctx, body.Chunk, body.Size)
-	if err != nil {
-		h.logger.Error("Get All users: error while getting", zap.Int("chunk", body.Chunk), zap.Int("size", body.Size))
+
+	size, err := strconv.Atoi(sizeStr)
+	if err != nil || size <= 0 {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "invalid 'size' parameter",
+		})
 		return
 	}
+
+	users, err := h.svc.GetAllUsers(ctx, chunk, size)
+	if err != nil {
+		h.logger.Error("Get All users: error while getting", zap.Int("chunk", chunk), zap.Int("size", size), zap.Error(err))
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Message: "failed to get users",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, dto.UsersResponse{
 		Users: users,
 	})
-	h.logger.Info("Get all users: successfully returned all users")
+
+	h.logger.Info("Get all users: successfully returned users", zap.Int("chunk", chunk), zap.Int("size", size))
 }
 
+// GetUserByName godoc
+// @Summary      Получение пользователя по имени
+// @Description  Возвращает данные пользователя по имени. Доступно только администратору.
+// @Tags         Пользователи
+// @Produce      json
+// @Param        name   path      string  true  "Имя пользователя"
+// @Success      200    {object}  dto.UserDto "Данные пользователя"
+// @Failure      400    {object}  dto.ErrorResponse "Пустое имя"
+// @Failure      404    {object}  dto.ErrorResponse "Пользователь не найден"
+// @Failure      500    {object}  dto.ErrorResponse "Внутренняя ошибка"
+// @Router       /users/get_user/{name} [get]
 func (h *UserHandlers) GetUserByName(ctx *gin.Context) {
 	name := ctx.Param("name")
 	if name == "" {
@@ -242,4 +328,36 @@ func (h *UserHandlers) GetUserByName(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, user)
 	h.logger.Info("Get user: successfully returned user by name")
+}
+
+// Logout godoc
+// @Summary      Выход из системы
+// @Description  Удаляет cookie access_token и завершает пользовательскую сессию.
+// @Tags         Авторизация
+// @Produce      json
+// @Success      200  {object}  map[string]string  "Сообщение об успешном выходе"
+// @Failure      401  {object}  dto.ErrorResponse  "Необходимо выполнить вход"
+// @Router       /users/logout [post]
+func (h *UserHandlers) Logout(ctx *gin.Context) {
+	idVal, ok := ctx.Get("user_id")
+	if !ok {
+		h.logger.Warn("Logout User: missing user id")
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{
+			Message: "Forbidden to logout",
+		})
+		return
+	}
+	h.logger.Info("Logout: user logged out", zap.Any("id", idVal))
+	cookie := http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	ctx.SetCookieData(&cookie)
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "logged out",
+	})
 }
