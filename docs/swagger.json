@@ -1,0 +1,752 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для управления пользователями.",
+        "title": "Traffic Incident Service API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/drivers/add": {
+            "post": {
+                "description": "Создает нового водителя по переданным данным",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Водители"
+                ],
+                "summary": "Добавить нового водителя",
+                "parameters": [
+                    {
+                        "description": "Данные водителя",
+                        "name": "driver",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddDriverDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "driver_id: ID созданного водителя",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные или неверный формат даты",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Водитель с таким номером лицензии уже существует",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/drivers/get_by_license/{license}": {
+            "get": {
+                "description": "Возвращает данные водителя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Водители"
+                ],
+                "summary": "Получить водителя по номеру лицензии",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Номер лицензии",
+                        "name": "license",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DriverResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Пустой license",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Водитель не найден",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/drivers/get_by_name/{name}": {
+            "get": {
+                "description": "Возвращает список всех водителей с указанным именем (частичное совпадение допускается)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Водители"
+                ],
+                "summary": "Получить список водителей по имени",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Имя водителя",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DriversResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Пустое имя",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/drivers/update": {
+            "patch": {
+                "description": "Частичное обновление данных водителя по номеру лицензии",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Водители"
+                ],
+                "summary": "Обновить данные водителя",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления",
+                        "name": "driver",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateDriverDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Некорректные данные",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Водитель не найден",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Новый номер лицензии уже используется",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/add": {
+            "post": {
+                "description": "Создаёт нового пользователя. Доступно только администратору.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Добавление пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные нового пользователя",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddUserDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ID созданного пользователя",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные / email занят / неверная роль",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/delete/{id}": {
+            "delete": {
+                "description": "Удаляет пользователя по ID. Доступно только администратору.",
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Удаление пользователя",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Пользователь успешно удалён"
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/get_all": {
+            "get": {
+                "description": "Возвращает пользователей постранично (через query-параметры chunk и size)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Получить список всех пользователей",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы (chunk)",
+                        "name": "chunk",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Размер страницы (size)",
+                        "name": "size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UsersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные параметры",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/get_user/{name}": {
+            "get": {
+                "description": "Возвращает данные пользователя по имени. Доступно только администратору.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Получение пользователя по имени",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Имя пользователя",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Данные пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserDto"
+                        }
+                    },
+                    "400": {
+                        "description": "Пустое имя",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/login": {
+            "post": {
+                "description": "Авторизует пользователя и устанавливает cookie access_token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Авторизация пользователя",
+                "parameters": [
+                    {
+                        "description": "Email и пароль",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Авторизация успешна, cookie установлена"
+                    },
+                    "400": {
+                        "description": "Ошибка парсинга JSON",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неверный пароль",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/logout": {
+            "post": {
+                "description": "Удаляет cookie access_token и завершает пользовательскую сессию.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Выход из системы",
+                "responses": {
+                    "200": {
+                        "description": "Сообщение об успешном выходе",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Необходимо выполнить вход",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/update": {
+            "patch": {
+                "description": "Обновляет данные пользователя. Администратор может обновлять всех, обычный пользователь — только себя.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Обновление пользователя",
+                "parameters": [
+                    {
+                        "description": "Новые данные пользователя",
+                        "name": "user",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ID обновлённого пользователя и статус",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные / неверная роль / неверный email",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.AddDriverDto": {
+            "type": "object",
+            "properties": {
+                "date_birth": {
+                    "type": "string"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "license_issue_date": {
+                    "type": "string"
+                },
+                "license_number": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AddUserDto": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DriverResponse": {
+            "type": "object",
+            "properties": {
+                "accidents": {
+                    "type": "integer"
+                },
+                "birthdate": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "license_exp_date": {
+                    "type": "string"
+                },
+                "license_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DriversResponse": {
+            "type": "object",
+            "properties": {
+                "drivers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DriverResponse"
+                    }
+                }
+            }
+        },
+        "dto.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LoginDto": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateDriverDto": {
+            "type": "object",
+            "properties": {
+                "date_birth": {
+                    "type": "string"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "license": {
+                    "type": "string"
+                },
+                "license_issue_date": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "new_license": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateUserDto": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserDto": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "passwordHash": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UserResponse"
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "access_token",
+            "in": "cookie"
+        }
+    }
+}

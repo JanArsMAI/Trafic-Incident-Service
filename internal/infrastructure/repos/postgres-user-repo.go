@@ -1,13 +1,13 @@
 package repos
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/user/entity"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/infrastructure/repos/dto"
+	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -25,27 +25,7 @@ func NewPostgresUserRepo(db *sqlx.DB) *PostgresUserRepo {
 	}
 }
 
-func (r *PostgresUserRepo) AddUser(ctx context.Context, u *entity.User) (int, error) {
-	query := `
-		INSERT INTO users (username, password_hash, email, role_id, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, NOW(), NOW())
-		RETURNING id;
-	`
-	err := r.db.QueryRowContext(
-		ctx,
-		query,
-		u.Username,
-		u.PasswordHash,
-		u.Email,
-		u.RoleId,
-	).Scan(&u.Id)
-	if err != nil {
-		return -1, err
-	}
-	return u.Id, nil
-}
-
-func (r *PostgresUserRepo) GetUser(ctx context.Context, id int) (*entity.User, error) {
+func (r *PostgresUserRepo) GetUser(ctx *gin.Context, id int) (*entity.User, error) {
 	query := `
 		SELECT id, username, password_hash, email, role_id, created_at, updated_at
 		FROM users
@@ -75,48 +55,7 @@ func (r *PostgresUserRepo) GetUser(ctx context.Context, id int) (*entity.User, e
 	return &user, nil
 }
 
-func (r *PostgresUserRepo) UpdateUser(ctx context.Context, u *entity.User) error {
-	query := `
-		UPDATE users
-		SET username = $1, password_hash = $2,email = $3,role_id = $4,updated_at = NOW()
-		 WHERE id = $5;
-	`
-	res, err := r.db.ExecContext(ctx, query, u.Username, u.PasswordHash,
-		u.Email, u.RoleId, u.Id,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
-	}
-
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get affected rows: %w", err)
-	}
-
-	if rows == 0 {
-		return ErrUserNotFound
-	}
-
-	return nil
-}
-
-func (r *PostgresUserRepo) DeleteUser(ctx context.Context, id int) error {
-	query := `DELETE FROM users WHERE id = $1`
-	res, err := r.db.ExecContext(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("error to Delete user: %w", err)
-	}
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get affected rows: %w", err)
-	}
-	if rows == 0 {
-		return ErrUserNotFound
-	}
-	return nil
-}
-
-func (r *PostgresUserRepo) GetUserByUsername(ctx context.Context, name string) (*entity.User, error) {
+func (r *PostgresUserRepo) GetUserByUsername(ctx *gin.Context, name string) (*entity.User, error) {
 	query := `
 		SELECT id, username, password_hash, email, role_id, created_at, updated_at
 		FROM users
@@ -146,7 +85,7 @@ func (r *PostgresUserRepo) GetUserByUsername(ctx context.Context, name string) (
 	return &user, nil
 }
 
-func (r *PostgresUserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (r *PostgresUserRepo) GetUserByEmail(ctx *gin.Context, email string) (*entity.User, error) {
 	query := `
 		SELECT id, username, password_hash, email, role_id, created_at, updated_at
 		FROM users
@@ -176,7 +115,7 @@ func (r *PostgresUserRepo) GetUserByEmail(ctx context.Context, email string) (*e
 	return &user, nil
 }
 
-func (r *PostgresUserRepo) GetAll(ctx context.Context, chunk, count int) ([]entity.User, error) {
+func (r *PostgresUserRepo) GetAll(ctx *gin.Context, chunk, count int) ([]entity.User, error) {
 	query := `
 		SELECT id, username, password_hash, email, role_id, created_at, updated_at
 		FROM users
@@ -204,7 +143,7 @@ func (r *PostgresUserRepo) GetAll(ctx context.Context, chunk, count int) ([]enti
 	return resUsers, nil
 }
 
-func (r *PostgresUserRepo) GetById(ctx context.Context, id int) (*entity.User, error) {
+func (r *PostgresUserRepo) GetById(ctx *gin.Context, id int) (*entity.User, error) {
 	query := `
 		SELECT id, username, password_hash, email, role_id, created_at, updated_at
 		FROM users
@@ -229,4 +168,87 @@ func (r *PostgresUserRepo) GetById(ctx context.Context, id int) (*entity.User, e
 	}
 
 	return &user, nil
+}
+
+func (r *PostgresUserRepo) withCurUserTx(ctx *gin.Context, fn func(tx *sql.Tx) error) error {
+	var curUserID int
+	if v := ctx.Value("cur_user_id"); v != nil {
+		curUserID, _ = v.(int)
+	}
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	if curUserID != 0 {
+		if _, err := tx.ExecContext(ctx,
+			"SELECT set_config('app.current_user_id', $1::text, true)", curUserID); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := fn(tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (r *PostgresUserRepo) UpdateUser(ctx *gin.Context, u *entity.User) error {
+	return r.withCurUserTx(ctx, func(tx *sql.Tx) error {
+		query := `
+            UPDATE users
+            SET username = $1, password_hash = $2, email = $3, role_id = $4, updated_at = NOW()
+            WHERE id = $5;
+        `
+		res, err := tx.ExecContext(ctx, query, u.Username, u.PasswordHash, u.Email, u.RoleId, u.Id)
+		if err != nil {
+			return fmt.Errorf("failed to update user: %w", err)
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("failed to get affected rows: %w", err)
+		}
+		if rows == 0 {
+			return ErrUserNotFound
+		}
+		return nil
+	})
+}
+
+func (r *PostgresUserRepo) DeleteUser(ctx *gin.Context, id int) error {
+	return r.withCurUserTx(ctx, func(tx *sql.Tx) error {
+		res, err := tx.ExecContext(ctx, `DELETE FROM users WHERE id=$1`, id)
+		if err != nil {
+			return fmt.Errorf("failed to delete user: %w", err)
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("failed to get affected rows: %w", err)
+		}
+		if rows == 0 {
+			return ErrUserNotFound
+		}
+		return nil
+	})
+}
+
+func (r *PostgresUserRepo) AddUser(ctx *gin.Context, u *entity.User) (int, error) {
+	var newID int
+	err := r.withCurUserTx(ctx, func(tx *sql.Tx) error {
+		query := `
+            INSERT INTO users (username, password_hash, email, role_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, NOW(), NOW())
+            RETURNING id;
+        `
+		return tx.QueryRowContext(ctx, query, u.Username, u.PasswordHash, u.Email, u.RoleId).Scan(&newID)
+	})
+	if err != nil {
+		return -1, err
+	}
+	u.Id = newID
+	return newID, nil
 }

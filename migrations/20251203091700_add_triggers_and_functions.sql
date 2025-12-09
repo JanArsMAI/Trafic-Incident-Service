@@ -1,18 +1,29 @@
-log_audit-- +goose Up
+-- +goose Up
 -- +goose StatementBegin
 -- Функция аудита
 CREATE OR REPLACE FUNCTION log_audit()
 RETURNS TRIGGER AS $$
+DECLARE
+    cur_user TEXT;
+    cur_user_id INTEGER;
 BEGIN
+    cur_user := current_setting('app.current_user_id', true);
+    IF cur_user IS NULL OR cur_user = '' THEN
+        cur_user_id := NULL;
+    ELSE
+        cur_user_id := cur_user::INTEGER;
+    END IF;
+
     INSERT INTO audit_log(user_id, action, table_name, record_id, old_data, new_data)
     VALUES (
-        current_setting('app.current_user_id', true)::INTEGER,
+        cur_user_id,
         TG_OP,
         TG_TABLE_NAME,
         COALESCE(NEW.id, OLD.id),
         to_jsonb(OLD),
         to_jsonb(NEW)
     );
+
     IF TG_OP = 'DELETE' THEN
         RETURN OLD;
     END IF;

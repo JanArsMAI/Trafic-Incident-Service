@@ -20,7 +20,35 @@ type LoginDto struct {
 	Password string `json:"password"`
 }
 
-type GetAllUsersDto struct {
-	Chunk int `json:"num_chunk"`
-	Size  int `json:"size"`
+type AddDriverDto struct {
+	Fullname         string `json:"name"`
+	DateOfBirth      string `json:"date_birth"`
+	License          string `json:"license_number"`
+	LicenseIssueDate string `json:"license_issue_date"`
+	Experience       int    `json:"experience"`
+}
+
+type UpdateDriverDto struct {
+	License          string  `json:"license"`
+	Fullname         *string `json:"name"`
+	DateOfBirth      *string `json:"date_birth"`
+	NewLicense       *string `json:"new_license"`
+	LicenseIssueDate *string `json:"license_issue_date"`
+	Experience       *int    `json:"experience"`
+}
+
+type AddVehicleDto struct {
+	Number string `json:"number"`
+	Model  string `json:"model"`
+	Year   int    `json:"year"`
+	Type   string `json:"type"`
+	Owner  int    `json:"owner"`
+}
+
+type UpdateVehicleDto struct {
+	Number string  `json:"number"`
+	Model  *string `json:"model"`
+	Owner  *int    `json:"owner"`
+	Type   *string `json:"type"`
+	Year   *int    `json:"year"`
 }
