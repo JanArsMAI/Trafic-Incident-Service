@@ -12,4 +12,7 @@ type UserService interface {
 	GetAllUsers(ctx *gin.Context, chunkNum, count int) ([]dto.UserResponse, error)
 	DeleteUser(ctx *gin.Context, id int) error
 	Login(ctx *gin.Context, data dto.LoginDto) (string, error)
+	UpdateInspector(ctx *gin.Context, body dto.UpdateInspector) error
+	AddInspector(ctx *gin.Context, body dto.AddInspector) (int, error)
+	GetInspector(ctx *gin.Context, id int) (*dto.InspectorResponse, error)
 }

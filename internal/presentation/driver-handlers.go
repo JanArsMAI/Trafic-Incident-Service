@@ -230,3 +230,133 @@ func (h *DriverHandlers) GetDriversByName(ctx *gin.Context) {
 	})
 	h.logger.Info("successfully returned Drivers by name")
 }
+
+// AddVehicle godoc
+// @Summary      Добавить транспортное средство
+// @Description  Создаёт новое транспортное средство. Номер должен быть уникальным.
+// @Tags         Транспорт
+// @Accept       json
+// @Produce      json
+// @Param        data  body      dto.AddVehicleDto  false  "Данные нового транспорта"
+// @Success      201   {object}  map[string]int     "ID созданного ТС"
+// @Failure      400   {object}  dto.ErrorResponse  "Неверные данные"
+// @Failure      409   {object}  dto.ErrorResponse  "ТС с таким номером уже существует"
+// @Failure      500   {object}  dto.ErrorResponse  "Внутренняя ошибка сервера"
+// @Router       /vehicles/add [post]
+func (h *DriverHandlers) AddVehicle(ctx *gin.Context) {
+	var body dto.AddVehicleDto
+
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		h.logger.Warn("Add vehicle: error while parsing json", zap.Error(err))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "invalid json body",
+		})
+		return
+	}
+
+	id, err := h.svc.AddVehicle(ctx, body)
+	if err != nil {
+
+		switch err {
+		case application.ErrBadRequest:
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+				Message: "invalid vehicle data",
+			})
+			return
+
+		case application.ErrVehicleWithThisNumberIsAlreadyExists:
+			ctx.AbortWithStatusJSON(http.StatusConflict, dto.ErrorResponse{
+				Message: "vehicle with this number already exists",
+			})
+			return
+
+		default:
+			h.logger.Error("Add vehicle: unexpected error", zap.Error(err))
+			ctx.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+	h.logger.Info("Add vehicle: successfully added", zap.Int("id", id))
+	ctx.JSON(http.StatusCreated, gin.H{
+		"id": id,
+	})
+}
+
+// GetVehicle godoc
+// @Summary      Получить транспортное средство по номеру
+// @Description  Возвращает информацию о транспортном средстве по его государственному номеру.
+// @Tags         Транспорт
+// @Accept       json
+// @Produce      json
+// @Param        number  path      string  true  "номер ТС"
+// @Success      200     {object}  dto.VehicleResponse  "Информация о транспортном средстве"
+// @Failure      400     {object}  dto.ErrorResponse    "Пустой номер"
+// @Failure      404     {object}  dto.ErrorResponse    "ТС не найдено"
+// @Failure      500     {object}  dto.ErrorResponse    "Ошибка сервера"
+// @Router       /vehicles/{number} [get]
+func (h *DriverHandlers) GetVehicle(ctx *gin.Context) {
+	number := ctx.Param("number")
+	if number == "" {
+		h.logger.Warn("Get Vehicle by number: empty number")
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "empty number",
+		})
+		return
+	}
+	vehicle, err := h.svc.GetVehicle(ctx, number)
+	if err != nil {
+		if errors.Is(err, application.ErrVehicleIsNotFound) {
+			ctx.AbortWithStatus(http.StatusNotFound)
+			h.logger.Warn("Get Vehicle by number: not found", zap.String("number", number))
+			return
+		}
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		h.logger.Error("Get Vehicle by number: error to find", zap.Error(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, vehicle)
+	h.logger.Info("Get Vehicle by number: successfully found", zap.String("number", number))
+}
+
+// UpdateVehicle godoc
+// @Summary      Обновить данные транспортного средства
+// @Description  Обновляет переданные поля транспортного средства по его номеру.
+// @Tags         Транспорт
+// @Accept       json
+// @Produce      json
+// @Param        data  body      dto.UpdateVehicleDto  false  "Данные для обновления ТС"
+// @Success      200   {object}  map[string]string     "Сообщение об успешном обновлении"
+// @Failure      400   {object}  dto.ErrorResponse     "Неверные данные"
+// @Failure      404   {object}  dto.ErrorResponse     "ТС не найдено"
+// @Failure      500   {object}  dto.ErrorResponse     "Внутренняя ошибка"
+// @Router       /vehicles/update [patch]
+func (h *DriverHandlers) UpdateVehicle(ctx *gin.Context) {
+	var body dto.UpdateVehicleDto
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		h.logger.Warn("Update vehicle: error while parsing json", zap.Error(err))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "invalid json body",
+		})
+		return
+	}
+	err := h.svc.UpdateVehicle(ctx, body)
+	if err != nil {
+		switch {
+		case errors.Is(err, application.ErrBadRequest):
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+				Message: "invalid vehicle data",
+			})
+			return
+		case errors.Is(err, application.ErrVehicleIsNotFound):
+			ctx.AbortWithStatus(http.StatusNotFound)
+			return
+		default:
+			h.logger.Error("Update vehicle: unexpected error", zap.Error(err))
+			ctx.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.logger.Info("Update vehicle: successfully updated", zap.String("number", body.Number))
+	ctx.Status(http.StatusOK)
+}

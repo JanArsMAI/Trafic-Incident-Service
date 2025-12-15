@@ -312,3 +312,76 @@ func (p *PostgresDriversRepo) GetVehicleByNumber(ctx *gin.Context, number string
 		CreatedAt: dto.CreatedAt,
 	}, nil
 }
+
+func (p *PostgresDriversRepo) GetVehicleById(ctx *gin.Context, id int) (*entityVehicle.Vehicle, error) {
+	query := `
+		SELECT
+		 id,
+		 plate_number,
+		 model,
+		 year,
+		 vehicle_type,
+		 owner_driver_id,
+		 created_at
+		 FROM vehicles 
+		 WHERE id=$1;
+	`
+	var dto dto.VehicleDto
+	if err := p.db.Get(&dto, query, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrVehicleIsNotFound
+		}
+		return nil, fmt.Errorf("error to get vehicle: %w", err)
+	}
+	var owner int
+	if dto.Owner.Valid {
+		owner = int(dto.Owner.Int32)
+	} else {
+		owner = 0
+	}
+	return &entityVehicle.Vehicle{
+		Id:        dto.Id,
+		Number:    dto.Number,
+		Model:     dto.Model,
+		Year:      dto.Year,
+		Type:      dto.Type,
+		Owner:     owner,
+		CreatedAt: dto.CreatedAt,
+	}, nil
+}
+
+func (p *PostgresDriversRepo) GetDriverById(ctx *gin.Context, id int) (*entityDriver.Driver, error) {
+	query := `
+		SELECT 
+			id,
+			full_name,
+			date_of_birth,
+			total_accidents,
+			license_number,
+			license_issue_date,
+			experience_years,
+			created_at
+		FROM drivers
+		WHERE id = $1;
+	`
+
+	var driver dto.DriverDto
+	err := p.db.GetContext(ctx, &driver, query, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrDriverIsNotFound
+		}
+		return nil, fmt.Errorf("failed to get driver by license: %w", err)
+	}
+
+	return &entityDriver.Driver{
+		Id:               driver.Id,
+		Fullname:         driver.Fullname,
+		DateOfBirth:      driver.DateOfBirth,
+		TotalAccidents:   driver.TotalAccidents,
+		License:          driver.License,
+		LicenseIssueDate: driver.LicenseIssueDate,
+		Experience:       driver.Experience,
+		CreatedAt:        driver.CreatedAt,
+	}, nil
+}

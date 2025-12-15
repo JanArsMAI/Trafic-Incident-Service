@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	entityInspector "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/inspector"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/user/entity"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/infrastructure/repos/dto"
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,8 @@ import (
 )
 
 var (
-	ErrUserNotFound = errors.New("error. User with this Id or name is not found")
+	ErrUserNotFound        = errors.New("error. User with this Id or name is not found")
+	ErrInspectorIsNotFound = errors.New("error. Inspector with this Id is not found")
 )
 
 type PostgresUserRepo struct {
@@ -251,4 +253,99 @@ func (r *PostgresUserRepo) AddUser(ctx *gin.Context, u *entity.User) (int, error
 	}
 	u.Id = newID
 	return newID, nil
+}
+
+func (r *PostgresUserRepo) AddInspector(ctx *gin.Context, u *entityInspector.Inspector) (int, error) {
+	var newID int
+	err := r.withCurUserTx(ctx, func(tx *sql.Tx) error {
+		query := `
+            INSERT INTO inspectors (full_name, badge_number, department, rank, user_id, created_at)
+            VALUES ($1, $2, $3, $4, $5, NOW())
+            RETURNING id;
+        `
+		return tx.QueryRowContext(ctx, query, u.Name, u.Number, u.Department, u.Rank, u.UserId).Scan(&newID)
+	})
+	if err != nil {
+		return -1, err
+	}
+	u.Id = newID
+	return newID, nil
+}
+
+func (r *PostgresUserRepo) UpdateInspector(ctx *gin.Context, u *entityInspector.Inspector) error {
+	return r.withCurUserTx(ctx, func(tx *sql.Tx) error {
+		query := `
+            UPDATE inspectors
+            SET full_name = $1, badge_number = $2, department = $3, rank = $4, user_id = $5
+            WHERE id = $6;
+        `
+		res, err := tx.ExecContext(ctx, query, u.Name, u.Number, u.Department, u.Rank, u.UserId, u.Id)
+		if err != nil {
+			return fmt.Errorf("failed to update inspector: %w", err)
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("failed to get affected rows: %w", err)
+		}
+		if rows == 0 {
+			return ErrInspectorIsNotFound
+		}
+		return nil
+	})
+}
+
+func (r *PostgresUserRepo) GetInspectorByBadge(ctx *gin.Context, number string) (*entityInspector.Inspector, error) {
+	var insp entityInspector.Inspector
+
+	query := `
+        SELECT id, full_name, badge_number, department, rank, user_id, created_at
+        FROM inspectors
+        WHERE badge_number = $1;
+    `
+
+	err := r.db.QueryRowContext(ctx, query, number).Scan(
+		&insp.Id,
+		&insp.Name,
+		&insp.Number,
+		&insp.Department,
+		&insp.Rank,
+		&insp.UserId,
+		&insp.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrInspectorIsNotFound
+		}
+		return nil, fmt.Errorf("failed to get inspector by badge: %w", err)
+	}
+
+	return &insp, nil
+}
+
+func (r *PostgresUserRepo) GetInspectorByID(ctx *gin.Context, id int) (*entityInspector.Inspector, error) {
+	var insp entityInspector.Inspector
+
+	query := `
+        SELECT id, full_name, badge_number, department, rank, user_id, created_at
+        FROM inspectors
+        WHERE id = $1;
+    `
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&insp.Id,
+		&insp.Name,
+		&insp.Number,
+		&insp.Department,
+		&insp.Rank,
+		&insp.UserId,
+		&insp.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrInspectorIsNotFound
+		}
+		return nil, fmt.Errorf("failed to get inspector by id: %w", err)
+	}
+	return &insp, nil
 }
