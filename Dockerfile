@@ -10,7 +10,7 @@ COPY . .
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 
-RUN swag init -g cmd/main.go -o docs
+RUN swag init -g cmd/main.go --parseInternal --parseDependency
 
 RUN go build -o go_app ./cmd
 

@@ -178,7 +178,13 @@ func (s *DriverService) AddVehicle(ctx *gin.Context, vehicle dto.AddVehicleDto) 
 	if vehicle.Owner <= 0 {
 		return -1, ErrBadRequest
 	}
-
+	_, err := s.repo.GetDriverById(ctx, vehicle.Owner)
+	if err == repos.ErrDriverIsNotFound {
+		return -1, ErrDriverIsNotFound
+	}
+	if err != nil {
+		return -1, fmt.Errorf("failed to check driver: %w", err)
+	}
 	existing, err := s.repo.GetVehicleByNumber(ctx, vehicle.Number)
 	if err != nil && err != repos.ErrVehicleIsNotFound {
 		return -1, fmt.Errorf("failed to check vehicle uniqueness: %w", err)

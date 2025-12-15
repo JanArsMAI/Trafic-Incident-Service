@@ -97,7 +97,9 @@ RETURNS TABLE(
     date_time TIMESTAMP,
     location VARCHAR,
     severity VARCHAR,
+    weather_id INT,
     weather JSONB,
+    inspector_id INT,
     inspector JSONB,
     participants JSONB
 ) AS $$
@@ -106,17 +108,28 @@ RETURNS TABLE(
         a.date_time,
         a.location,
         a.severity,
+
+        w.id AS weather_id,
         to_jsonb(w.*) AS weather,
+
+        i.id AS inspector_id,
         to_jsonb(i.*) AS inspector,
+
         (
             SELECT jsonb_agg(jsonb_build_object(
                 'participant_id', ap.id,
+                'driver_id', d.id,
+                'vehicle_id', v.id,
                 'driver', to_jsonb(d.*),
                 'vehicle', to_jsonb(v.*),
                 'is_guilty', ap.is_guilty,
                 'injuries', ap.injuries,
                 'violations', (
-                    SELECT jsonb_agg(to_jsonb(vi.*))
+                    SELECT jsonb_agg(jsonb_build_object(
+                        'violation_id', vi.id,
+                        'code', vi.code,
+                        'description', vi.description
+                    ))
                     FROM participant_violations pv
                     JOIN violations vi ON pv.violation_id = vi.id
                     WHERE pv.participant_id = ap.id

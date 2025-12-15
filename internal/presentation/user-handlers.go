@@ -192,6 +192,7 @@ func (h *UserHandlers) DeleteUser(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
 	ctx.Status(http.StatusOK)
 	h.logger.Info("Delete user: successfully deleted user", zap.Int("id", id))
 }
@@ -289,12 +290,10 @@ func (h *UserHandlers) GetAllUsers(ctx *gin.Context) {
 		})
 		return
 	}
-
+	h.logger.Info("Get all users: successfully returned users", zap.Int("chunk", chunk), zap.Int("size", size))
 	ctx.JSON(http.StatusOK, dto.UsersResponse{
 		Users: users,
 	})
-
-	h.logger.Info("Get all users: successfully returned users", zap.Int("chunk", chunk), zap.Int("size", size))
 }
 
 // GetUserByName godoc
@@ -303,7 +302,7 @@ func (h *UserHandlers) GetAllUsers(ctx *gin.Context) {
 // @Tags         Пользователи
 // @Produce      json
 // @Param        name   path      string  true  "Имя пользователя"
-// @Success      200    {object}  dto.UserDto "Данные пользователя"
+// @Success      200    {object}  dto.UserResponse "Данные пользователя"
 // @Failure      400    {object}  dto.ErrorResponse "Пустое имя"
 // @Failure      404    {object}  dto.ErrorResponse "Пользователь не найден"
 // @Failure      500    {object}  dto.ErrorResponse "Внутренняя ошибка"
@@ -360,4 +359,181 @@ func (h *UserHandlers) Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "logged out",
 	})
+}
+
+// AddInspector godoc
+// @Summary Добавить нового инспектора
+// @Description Создаёт нового инспектора в системе. Пользователь должен иметь роль "inspector", иначе создание невозможно.
+// @Tags Инспекторы
+// @Accept json
+// @Produce json
+// @Param inspector body dto.AddInspector true "Данные нового инспектора"
+// @Success 201 {object} map[string]int "ID созданного инспектора"
+// @Failure 400 {object} dto.ErrorResponse "Ошибка в теле запроса"
+// @Failure 404 {object} dto.ErrorResponse "Пользователь с таким ID не найден"
+// @Failure 409 {object} dto.ErrorResponse "Инспектор с таким жетоном уже существует"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Router /inspectors/add [post]
+func (h *UserHandlers) AddInspector(ctx *gin.Context) {
+	var body dto.AddInspector
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		h.logger.Error("AddInspector: error parsing json", zap.Error(err))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "error while parsing json",
+		})
+		return
+	}
+
+	id, err := h.svc.AddInspector(ctx, body)
+	if err != nil {
+		switch {
+		case errors.Is(err, application.ErrUserNotFound):
+			h.logger.Warn("AddInspector: inspector with user_id is not found", zap.Int("user_id", body.UserId))
+			ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{
+				Message: "user not found",
+			})
+			return
+
+		case errors.Is(err, application.ErrIncorrectRole):
+			h.logger.Warn("AddInspector: inspector with user_id is not inspector", zap.Int("user_id", body.UserId))
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+				Message: "user does not have inspector role",
+			})
+			return
+
+		case errors.Is(err, application.ErrBadRequest):
+			h.logger.Warn("AddInspector: wrong request")
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+				Message: "invalid request body",
+			})
+			return
+
+		case errors.Is(err, application.ErrInspectorAlreadyExists):
+			h.logger.Warn("AddInspector: inspector with badge is already exists")
+			ctx.AbortWithStatusJSON(http.StatusConflict, dto.ErrorResponse{
+				Message: "inspector with such badge already exists",
+			})
+			return
+
+		default:
+			h.logger.Error("AddInspector: service error", zap.Error(err))
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{
+				Message: "internal server error",
+			})
+			return
+		}
+	}
+
+	h.logger.Info("successfully added inspector", zap.Int("id", id))
+	ctx.JSON(http.StatusCreated, gin.H{
+		"id": id,
+	})
+
+}
+
+// UpdateInspector godoc
+// @Summary Обновить данные инспектора
+// @Description Частично обновляет данные инспектора. Можно изменять имя, номер жетона, отдел, звание и user_id.
+// @Tags Инспекторы
+// @Accept json
+// @Produce json
+// @Param inspector body dto.UpdateInspector false "Изменяемые данные инспектора"
+// @Success 200 "Инспектор успешно обновлён"
+// @Failure 400 {object} dto.ErrorResponse "Некорректные данные запроса"
+// @Failure 404 {object} dto.ErrorResponse "Инспектор или назначенный пользователь не найден"
+// @Failure 409 {object} dto.ErrorResponse "Инспектор с таким номером жетона уже существует"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Router /inspectors/update [patch]
+func (h *UserHandlers) UpdateInspector(ctx *gin.Context) {
+	var body dto.UpdateInspector
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		h.logger.Error("UpdateInspector: error parsing json", zap.Error(err))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "error while parsing json",
+		})
+		return
+	}
+	err := h.svc.UpdateInspector(ctx, body)
+	if err != nil {
+		switch {
+		case errors.Is(err, application.ErrBadRequest):
+			h.logger.Warn("Update Inspector: wrong request")
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+				Message: "invalid request data",
+			})
+
+			return
+
+		case errors.Is(err, application.ErrInspectorIsNotFound):
+			h.logger.Warn("Update Inspector: inspector is not found", zap.Int("id", body.Id))
+			ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{
+				Message: "inspector not found",
+			})
+
+			return
+
+		case errors.Is(err, application.ErrInspectorAlreadyExists):
+			h.logger.Warn("Update Inspector: inspector with this badge is already exists", zap.String("number", *body.Number))
+			ctx.AbortWithStatusJSON(http.StatusConflict, dto.ErrorResponse{
+				Message: "inspector with this badge already exists",
+			})
+
+			return
+
+		case errors.Is(err, application.ErrUserNotFound):
+			ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{
+				Message: "assigned user not found",
+			})
+			return
+
+		default:
+			h.logger.Error("UpdateInspector: service error", zap.Error(err))
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{
+				Message: "internal server error",
+			})
+			return
+		}
+	}
+	ctx.Status(http.StatusOK)
+	h.logger.Info("successfully updated inspector", zap.Int("id", body.Id))
+}
+
+// GetInspector godoc
+// @Summary Получить данные инспектора
+// @Description Возвращает полную информацию об инспекторе по его ID.
+// @Tags Инспекторы
+// @Accept json
+// @Produce json
+// @Param id path int true "ID инспектора"
+// @Success 200 {object} dto.InspectorResponse "Информация об инспекторе"
+// @Failure 400 {object} dto.ErrorResponse "Некорректный ID"
+// @Failure 404 {object} dto.ErrorResponse "Инспектор не найден"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Router /inspectors/get/{id} [get]
+func (h *UserHandlers) GetInspector(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		h.logger.Warn("Get Inspector: bad request, no id in path")
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		h.logger.Warn("Get Inspector: bad request, invalid id", zap.Error(err))
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	inspector, err := h.svc.GetInspector(ctx, idInt)
+	if err != nil {
+		if errors.Is(err, application.ErrInspectorIsNotFound) {
+			h.logger.Warn("Get Inspector: Inspector is not found", zap.Int("id", idInt))
+			ctx.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		h.logger.Error("Get Inspector: error to get inspector", zap.Error(err))
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	h.logger.Info("Get Inspector: successfully returned inspector", zap.Int("id", idInt))
+	ctx.JSON(http.StatusOK, inspector)
 }

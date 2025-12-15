@@ -15,6 +15,426 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/accidents/add": {
+            "post": {
+                "description": "Ручка позволяет инспектору зарегистрировать новый дорожный инцидент.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Добавление нового инцидента (ДТП)",
+                "parameters": [
+                    {
+                        "description": "Данные нового ДТП",
+                        "name": "accident",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.CreateAccidentDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ID созданного ДТП",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации входных данных",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещён. Пользователь не является инспектором",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Сущность, на которую есть ссылка, не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accidents/get/{id}": {
+            "get": {
+                "description": "Возвращает расширенный отчёт о ДТП с указанием погодных условий, инспектора, участников, их транспортных средств и нарушений.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Получить полную информацию о ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID ДТП",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Полный отчёт о ДТП",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.FullAccidentReport"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID или ошибка запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "ДТП с указанным ID не найдено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accidents/participants/{id}": {
+            "delete": {
+                "description": "Удаляет участника из ДТП",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Удалить участника ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID участника ДТП",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Участник удалён"
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Участник не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accidents/participants/{id}/violations": {
+            "post": {
+                "description": "Добавляет одно или несколько нарушений участнику ДТП",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Добавить нарушения участнику ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID участника ДТП",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Список нарушений",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantViolationsDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Нарушения успешно добавлены"
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Участник не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Нарушение уже добавлено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accidents/participants/{id}/violations/{violation_id}": {
+            "delete": {
+                "description": "Удаляет конкретное нарушение у участника ДТП",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Удалить нарушение у участника ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID участника ДТП",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID нарушения",
+                        "name": "violation_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Нарушение удалено"
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Участник или нарушение не найдено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/accidents/update/{id}": {
+            "patch": {
+                "description": "Позволяет инспектору обновить сведения об уже существующем ДТП.\nОбновляться могут только переданные поля (частичное обновление).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Обновление данных ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID инцидента",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления ДТП",
+                        "name": "accident",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateAccidentDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Инцидент успешно обновлён",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/accidents/update_weather/{id}": {
+            "patch": {
+                "description": "Обновляет погодные условия по указанному ID. Можно передать только те поля, которые требуется изменить.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Обновить данные о погоде",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID погодной записи",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateWeatherDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Погода успешно обновлена"
+                    },
+                    "400": {
+                        "description": "Некорректные данные или отсутствуют поля для обновления",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Запись о погоде не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/accidents/{id}/participants": {
+            "post": {
+                "description": "Добавляет нового участника в указанное ДТП",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ДТП"
+                ],
+                "summary": "Добавить участника ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID ДТП",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные участника ДТП",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Участник успешно добавлен"
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "ДТП или водитель не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Участник уже существует",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/drivers/add": {
             "post": {
                 "description": "Создает нового водителя по переданным данным",
@@ -35,7 +455,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AddDriverDto"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddDriverDto"
                         }
                     }
                 ],
@@ -50,19 +470,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректные данные или неверный формат даты",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Водитель с таким номером лицензии уже существует",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -94,25 +514,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DriverResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverResponse"
                         }
                     },
                     "400": {
                         "description": "Пустой license",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Водитель не найден",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -144,19 +564,77 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DriversResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriversResponse"
                         }
                     },
                     "400": {
                         "description": "Пустое имя",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/drivers/get_penalties": {
+            "get": {
+                "description": "Возвращает финансовую аналитику по штрафам для каждого водителя: общее количество штрафов, общую сумму, оплаченные и неоплаченные штрафы.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Водители"
+                ],
+                "summary": "Получить сводку штрафов по водителям",
+                "responses": {
+                    "200": {
+                        "description": "Сводка штрафов по водителям",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverPenaltySummaryResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/drivers/get_stats": {
+            "get": {
+                "description": "Возвращает общую статистику по всем водителям: стаж, количество ДТП и количество ДТП, где водитель признан виновным.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Водители"
+                ],
+                "summary": "Получить статистику ДТП по водителям",
+                "responses": {
+                    "200": {
+                        "description": "Список статистики по водителям",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverAccidentStatResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -181,7 +659,7 @@ const docTemplate = `{
                         "name": "driver",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateDriverDto"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateDriverDto"
                         }
                     }
                 ],
@@ -192,25 +670,551 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректные данные",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Водитель не найден",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Новый номер лицензии уже используется",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inspectors/add": {
+            "post": {
+                "description": "Создаёт нового инспектора в системе. Пользователь должен иметь роль \"inspector\", иначе создание невозможно.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Инспекторы"
+                ],
+                "summary": "Добавить нового инспектора",
+                "parameters": [
+                    {
+                        "description": "Данные нового инспектора",
+                        "name": "inspector",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddInspector"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ID созданного инспектора",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в теле запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь с таким ID не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Инспектор с таким жетоном уже существует",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inspectors/get/{id}": {
+            "get": {
+                "description": "Возвращает полную информацию об инспекторе по его ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Инспекторы"
+                ],
+                "summary": "Получить данные инспектора",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID инспектора",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация об инспекторе",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.InspectorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Инспектор не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inspectors/update": {
+            "patch": {
+                "description": "Частично обновляет данные инспектора. Можно изменять имя, номер жетона, отдел, звание и user_id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Инспекторы"
+                ],
+                "summary": "Обновить данные инспектора",
+                "parameters": [
+                    {
+                        "description": "Изменяемые данные инспектора",
+                        "name": "inspector",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateInspector"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Инспектор успешно обновлён"
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Инспектор или назначенный пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Инспектор с таким номером жетона уже существует",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/penalties": {
+            "post": {
+                "description": "Создаёт штраф для участника ДТП. Инспектор определяется по access_token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Штрафы"
+                ],
+                "summary": "Добавить штраф участнику ДТП",
+                "parameters": [
+                    {
+                        "description": "Данные для создания штрафа",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddPenaltyDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Штраф успешно создан"
+                    },
+                    "400": {
+                        "description": "Некорректные данные",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Участник или инспектор не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/penalties/{id}": {
+            "get": {
+                "description": "Возвращает информацию о штрафе",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Штрафы"
+                ],
+                "summary": "Получить штраф по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID штрафа",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Штраф не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Обновляет сумму и/или статус штрафа",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Штрафы"
+                ],
+                "summary": "Обновить штраф",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID штрафа",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для обновления штрафа",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdatePenaltyDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Штраф успешно обновлён"
+                    },
+                    "400": {
+                        "description": "Некорректные данные",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Штраф не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/penalties/{id}/all": {
+            "get": {
+                "description": "Возвращает список всех штрафов конкретного участника",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Штрафы"
+                ],
+                "summary": "Получить штрафы участника ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID участника ДТП",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID участника",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Участник не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports": {
+            "post": {
+                "description": "Создаёт отчёт по указанному ДТП. Отчёт привязывается к текущему инспектору.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Отчёты по дтп"
+                ],
+                "summary": "Добавить отчёт по ДТП",
+                "parameters": [
+                    {
+                        "description": "Данные для создания отчёта",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddReportDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Отчёт успешно создан"
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "ДТП или инспектор не найдены",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/accidents/{id}": {
+            "get": {
+                "description": "Возвращает отчёт, связанный с указанным ДТП",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Отчёты по дтп"
+                ],
+                "summary": "Получить отчёт по ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID ДТП",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID ДТП",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Отчёт не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/{id}": {
+            "patch": {
+                "description": "Обновляет текст отчёта по его ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Отчёты по дтп"
+                ],
+                "summary": "Обновить отчёт по ДТП",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID отчёта",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новый текст отчёта",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateReportDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Отчёт успешно обновлён"
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Отчёт не найден",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -236,7 +1240,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AddUserDto"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddUserDto"
                         }
                     }
                 ],
@@ -253,13 +1257,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректные данные / email занят / неверная роль",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -288,19 +1292,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректный ID",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Пользователь не найден",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Внутренняя ошибка",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -339,19 +1343,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.UsersResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UsersResponse"
                         }
                     },
                     "400": {
                         "description": "Неверные параметры",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -380,25 +1384,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Данные пользователя",
                         "schema": {
-                            "$ref": "#/definitions/dto.UserDto"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UserResponse"
                         }
                     },
                     "400": {
                         "description": "Пустое имя",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Пользователь не найден",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Внутренняя ошибка",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -424,7 +1428,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.LoginDto"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.LoginDto"
                         }
                     }
                 ],
@@ -435,25 +1439,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Ошибка парсинга JSON",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Неверный пароль",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Пользователь не найден",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Внутренняя ошибка",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -482,7 +1486,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Необходимо выполнить вход",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -507,7 +1511,7 @@ const docTemplate = `{
                         "name": "user",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateUserDto"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateUserDto"
                         }
                     }
                 ],
@@ -522,25 +1526,183 @@ const docTemplate = `{
                     "400": {
                         "description": "Некорректные данные / неверная роль / неверный email",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Нет доступа",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Пользователь не найден",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Внутренняя ошибка",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vehicles/add": {
+            "post": {
+                "description": "Создаёт новое транспортное средство. Номер должен быть уникальным.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Транспорт"
+                ],
+                "summary": "Добавить транспортное средство",
+                "parameters": [
+                    {
+                        "description": "Данные нового транспорта",
+                        "name": "data",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddVehicleDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ID созданного ТС",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные данные",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "ТС с таким номером уже существует",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vehicles/update": {
+            "patch": {
+                "description": "Обновляет переданные поля транспортного средства по его номеру.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Транспорт"
+                ],
+                "summary": "Обновить данные транспортного средства",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления ТС",
+                        "name": "data",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateVehicleDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сообщение об успешном обновлении",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные данные",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "ТС не найдено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/vehicles/{number}": {
+            "get": {
+                "description": "Возвращает информацию о транспортном средстве по его государственному номеру.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Транспорт"
+                ],
+                "summary": "Получить транспортное средство по номеру",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "номер ТС",
+                        "name": "number",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о транспортном средстве",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.VehicleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Пустой номер",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "ТС не найдено",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse"
                         }
                     }
                 }
@@ -548,7 +1710,175 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AddDriverDto": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_driver.Driver": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "dateOfBirth": {
+                    "type": "string"
+                },
+                "experience": {
+                    "type": "integer"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "license": {
+                    "type": "string"
+                },
+                "licenseIssueDate": {
+                    "type": "string"
+                },
+                "totalAccidents": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_inspector.Inspector": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_vehicle.Vehicle": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_violation.Violation": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_weather.Weather": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "precipitation": {
+                    "type": "string"
+                },
+                "roadCondition": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number",
+                    "format": "float64"
+                },
+                "visibility": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentDTO": {
+            "type": "object",
+            "properties": {
+                "date_time": {
+                    "type": "string"
+                },
+                "inspector_id": {
+                    "type": "integer"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentFullParticipant": {
+            "type": "object",
+            "properties": {
+                "driver": {
+                    "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_driver.Driver"
+                },
+                "driver_id": {
+                    "type": "integer"
+                },
+                "injuries": {
+                    "type": "string"
+                },
+                "is_guilty": {
+                    "type": "boolean"
+                },
+                "participant_id": {
+                    "type": "integer"
+                },
+                "vehicle": {
+                    "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_vehicle.Vehicle"
+                },
+                "vehicle_id": {
+                    "type": "integer"
+                },
+                "violations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_violation.Violation"
+                    }
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddDriverDto": {
             "type": "object",
             "properties": {
                 "date_birth": {
@@ -568,7 +1898,90 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AddUserDto": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddInspector": {
+            "type": "object",
+            "properties": {
+                "badge_number": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "userid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantDTO": {
+            "type": "object",
+            "required": [
+                "driver_id",
+                "vehicle_id"
+            ],
+            "properties": {
+                "driver_id": {
+                    "type": "integer"
+                },
+                "injuries": {
+                    "type": "string"
+                },
+                "is_guilty": {
+                    "type": "boolean"
+                },
+                "vehicle_id": {
+                    "type": "integer"
+                },
+                "violations": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantViolationsDTO": {
+            "type": "object",
+            "required": [
+                "violations"
+            ],
+            "properties": {
+                "violations": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddPenaltyDTO": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "participant_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddReportDTO": {
+            "type": "object",
+            "properties": {
+                "accident_id": {
+                    "type": "integer"
+                },
+                "report_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddUserDto": {
             "type": "object",
             "properties": {
                 "email": {
@@ -585,7 +1998,87 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.DriverResponse": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddVehicleDto": {
+            "type": "object",
+            "properties": {
+                "model": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.CreateAccidentDTO": {
+            "type": "object",
+            "properties": {
+                "accident": {
+                    "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentDTO"
+                },
+                "participants": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantDTO"
+                    }
+                },
+                "weather": {
+                    "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.WeatherDTO"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverAccidentStatResponse": {
+            "type": "object",
+            "properties": {
+                "accidents_count": {
+                    "type": "integer"
+                },
+                "driver_id": {
+                    "type": "integer"
+                },
+                "experience_years": {
+                    "type": "integer"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "guilty_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverPenaltySummaryResponse": {
+            "type": "object",
+            "properties": {
+                "driver_id": {
+                    "type": "integer"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "paid_amount": {
+                    "type": "number"
+                },
+                "penalties_total": {
+                    "type": "integer"
+                },
+                "total_amount": {
+                    "type": "number"
+                },
+                "unpaid_amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverResponse": {
             "type": "object",
             "properties": {
                 "accidents": {
@@ -614,18 +2107,18 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.DriversResponse": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriversResponse": {
             "type": "object",
             "properties": {
                 "drivers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.DriverResponse"
+                        "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverResponse"
                     }
                 }
             }
         },
-        "dto.ErrorResponse": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -633,7 +2126,68 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.LoginDto": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.FullAccidentReport": {
+            "type": "object",
+            "properties": {
+                "accident_id": {
+                    "type": "integer"
+                },
+                "date_time": {
+                    "type": "string"
+                },
+                "inspector": {
+                    "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_inspector.Inspector"
+                },
+                "inspector_id": {
+                    "type": "integer"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "participants": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentFullParticipant"
+                    }
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "weather": {
+                    "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_weather.Weather"
+                },
+                "weather_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.InspectorResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.LoginDto": {
             "type": "object",
             "properties": {
                 "email": {
@@ -644,7 +2198,112 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateDriverDto": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantDTO": {
+            "type": "object",
+            "properties": {
+                "participant": {
+                    "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantEntityDTO"
+                },
+                "violations": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantEntityDTO": {
+            "type": "object",
+            "properties": {
+                "driver_id": {
+                    "type": "integer"
+                },
+                "injuries": {
+                    "type": "string"
+                },
+                "is_guilty": {
+                    "type": "boolean"
+                },
+                "vehicle_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyListResponse": {
+            "type": "object",
+            "properties": {
+                "penalties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyResponse"
+                    }
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "issue_date": {
+                    "type": "string"
+                },
+                "issued_by": {
+                    "type": "integer"
+                },
+                "participant_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ReportResponse": {
+            "type": "object",
+            "properties": {
+                "accident_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "inspector_id": {
+                    "type": "integer"
+                },
+                "report_text": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateAccidentDTO": {
+            "type": "object",
+            "properties": {
+                "date_time": {
+                    "type": "string"
+                },
+                "inspector_id": {
+                    "type": "integer"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateDriverDto": {
             "type": "object",
             "properties": {
                 "date_birth": {
@@ -667,7 +2326,49 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateUserDto": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateInspector": {
+            "type": "object",
+            "properties": {
+                "badge_number": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rank": {
+                    "type": "string"
+                },
+                "userid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdatePenaltyDTO": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateReportDTO": {
+            "type": "object",
+            "properties": {
+                "report_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateUserDto": {
             "type": "object",
             "properties": {
                 "email": {
@@ -687,33 +2388,47 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UserDto": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateVehicleDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "model": {
                     "type": "string"
                 },
-                "email": {
+                "number": {
                     "type": "string"
                 },
-                "id": {
+                "owner": {
                     "type": "integer"
                 },
-                "passwordHash": {
+                "type": {
                     "type": "string"
                 },
-                "role": {
+                "year": {
                     "type": "integer"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
-        "dto.UserResponse": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateWeatherDTO": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "precipitation": {
+                    "type": "string"
+                },
+                "road_condition": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
+                },
+                "visibility": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UserResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -736,14 +2451,60 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UsersResponse": {
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UsersResponse": {
             "type": "object",
             "properties": {
                 "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.UserResponse"
+                        "$ref": "#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UserResponse"
                     }
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.VehicleResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.WeatherDTO": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "precipitation": {
+                    "type": "string"
+                },
+                "road_condition": {
+                    "type": "string"
+                },
+                "temperature": {
+                    "type": "number"
+                },
+                "visibility": {
+                    "type": "integer"
                 }
             }
         }

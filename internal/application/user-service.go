@@ -2,8 +2,10 @@ package application
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
+	entityInspector "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/inspector"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/interfaces"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/user/entity"
 	"github.com/JanArsMAI/Trafic-Incident-Service.git/internal/infrastructure/repos"
@@ -18,12 +20,15 @@ type UserService struct {
 }
 
 var (
-	ErrUserNotFound      = errors.New("error. User is not found")
-	ErrInvalidEmail      = errors.New("error. Invalid email, @ not found")
-	ErrInvalidRole       = errors.New("error. Invalid role was set")
-	ErrEmailIsUsed       = errors.New("error. Email is already used")
-	ErrIncorrectPassword = errors.New("error. Password is incorrect")
-	roleMap              = map[string]int{
+	ErrUserNotFound           = errors.New("error. User is not found")
+	ErrInvalidEmail           = errors.New("error. Invalid email, @ not found")
+	ErrInvalidRole            = errors.New("error. Invalid role was set")
+	ErrEmailIsUsed            = errors.New("error. Email is already used")
+	ErrIncorrectPassword      = errors.New("error. Password is incorrect")
+	ErrInspectorAlreadyExists = errors.New("error. Inspector is already exists")
+	ErrIncorrectRole          = errors.New("error. User is not an inspector")
+	ErrInspectorIsNotFound    = errors.New("error. Inspector is not found")
+	roleMap                   = map[string]int{
 		"admin":     1,
 		"inspector": 2,
 		"analyst":   3,
@@ -205,4 +210,128 @@ func (u *UserService) Login(ctx *gin.Context, data dto.LoginDto) (string, error)
 		return "", err
 	}
 	return token, nil
+}
+
+func (u *UserService) AddInspector(ctx *gin.Context, body dto.AddInspector) (int, error) {
+	user, err := u.repo.GetById(ctx, body.UserId)
+	if err != nil {
+		if errors.Is(err, repos.ErrUserNotFound) {
+			return -1, ErrUserNotFound
+		}
+		return -1, err
+	}
+	if backRoleMap[user.RoleId] != "inspector" {
+		return -1, ErrIncorrectRole
+	}
+
+	if body.Name == "" || body.Number == "" || body.Department == "" || body.Rank == "" {
+		return -1, ErrBadRequest
+	}
+
+	existing, err := u.repo.GetInspectorByBadge(ctx, body.Number)
+	if err != nil && !errors.Is(err, repos.ErrInspectorIsNotFound) {
+		return -1, err
+	}
+	if existing != nil {
+		return -1, ErrInspectorAlreadyExists
+	}
+
+	insp := &entityInspector.Inspector{
+		Name:       body.Name,
+		Number:     body.Number,
+		Department: body.Department,
+		Rank:       body.Rank,
+		UserId:     body.UserId,
+	}
+	id, err := u.repo.AddInspector(ctx, insp)
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
+}
+
+func (u *UserService) UpdateInspector(ctx *gin.Context, body dto.UpdateInspector) error {
+	if body.Id <= 0 {
+		return ErrBadRequest
+	}
+	existing, err := u.repo.GetInspectorByID(ctx, body.Id)
+	if err != nil {
+		if errors.Is(err, repos.ErrInspectorIsNotFound) || errors.Is(err, ErrInspectorIsNotFound) {
+			return ErrInspectorIsNotFound
+		}
+		return ErrBadRequest
+	}
+	if body.Number != nil {
+		newBadge := *body.Number
+		if newBadge == "" {
+			return ErrBadRequest
+		}
+		if newBadge != existing.Number {
+			other, err := u.repo.GetInspectorByBadge(ctx, newBadge)
+			if err == nil && other != nil {
+				if other.Id != existing.Id {
+					return ErrInspectorAlreadyExists
+				}
+			} else if err != nil && !errors.Is(err, repos.ErrInspectorIsNotFound) && !errors.Is(err, ErrInspectorIsNotFound) {
+				return fmt.Errorf("failed to check badge uniqueness: %w", err)
+			}
+			existing.Number = newBadge
+		}
+	}
+	if body.Name != nil {
+		if *body.Name == "" {
+			return ErrBadRequest
+		}
+		existing.Name = *body.Name
+	}
+	if body.Department != nil {
+		if *body.Department == "" {
+			return ErrBadRequest
+		}
+		existing.Department = *body.Department
+	}
+	if body.Rank != nil {
+		existing.Rank = *body.Rank
+	}
+	if body.UserId != nil {
+		if *body.UserId <= 0 {
+			return ErrBadRequest
+		}
+		_, err := u.repo.GetById(ctx, *body.UserId)
+		if err != nil {
+			if errors.Is(err, repos.ErrUserNotFound) {
+				return ErrUserNotFound
+			}
+			return fmt.Errorf("failed to validate user id: %w", err)
+		}
+		existing.UserId = *body.UserId
+	}
+
+	if err := u.repo.UpdateInspector(ctx, existing); err != nil {
+		if errors.Is(err, repos.ErrInspectorIsNotFound) {
+			return ErrInspectorIsNotFound
+		}
+		return fmt.Errorf("failed to update inspector: %w", err)
+	}
+	return nil
+}
+
+func (u *UserService) GetInspector(ctx *gin.Context, id int) (*dto.InspectorResponse, error) {
+	inspector, err := u.repo.GetInspectorByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, repos.ErrInspectorIsNotFound) {
+			return nil, ErrInspectorIsNotFound
+		}
+		return nil, err
+	}
+	return &dto.InspectorResponse{
+		Id:         inspector.Id,
+		Name:       inspector.Name,
+		Number:     inspector.Number,
+		Department: inspector.Department,
+		Rank:       inspector.Rank,
+		UserId:     inspector.UserId,
+		CreatedAt:  inspector.CreatedAt,
+	}, nil
 }

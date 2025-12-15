@@ -39,7 +39,9 @@ func ConfigureApp(r *gin.Engine, logger *zap.Logger, cfg config.ServerConfig) fu
 	} else {
 		logger.Info("user admin is created", zap.Int("id", res))
 	}
-	rest.InitRoutes(r, userSvc, jwtSvc, logger, driversSvc)
+	accidentRepo := repos.NewIncidentRepo(db)
+	accidentSvc := application.NewAccidentService(accidentRepo, driversRepo, userRepo)
+	rest.InitRoutes(r, userSvc, jwtSvc, logger, driversSvc, accidentSvc)
 	return func() {
 		_ = logger.Sync()
 	}

@@ -1,6 +1,14 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	entityDriver "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/driver"
+	entityInspector "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/inspector"
+	entityVehicle "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/vehicle"
+	entityViolation "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/violation"
+	entityWeather "github.com/JanArsMAI/Trafic-Incident-Service.git/internal/domain/weather"
+)
 
 type UserResponse struct {
 	Id        int       `json:"id"`
@@ -46,4 +54,82 @@ type VehicleResponse struct {
 	Type      string    `json:"type"`
 	Owner     int       `json:"owner"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type InspectorResponse struct {
+	Id         int       `json:"id"`
+	Name       string    `json:"name"`
+	Number     string    `json:"number"`
+	Department string    `json:"department"`
+	Rank       string    `json:"rank"`
+	UserId     int       `json:"user_id"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type FullAccidentReport struct {
+	AccidentID int       `json:"accident_id"`
+	DateTime   time.Time `json:"date_time"`
+	Location   string    `json:"location"`
+	Severity   string    `json:"severity"`
+
+	WeatherID *int                   `json:"weather_id"`
+	Weather   *entityWeather.Weather `json:"weather"`
+
+	InspectorID *int                       `json:"inspector_id"`
+	Inspector   *entityInspector.Inspector `json:"inspector"`
+
+	Participants []AccidentFullParticipant `json:"participants"`
+}
+
+type AccidentFullParticipant struct {
+	ParticipantID int `json:"participant_id"`
+	DriverID      int `json:"driver_id"`
+	VehicleID     int `json:"vehicle_id"`
+
+	Driver  entityDriver.Driver   `json:"driver"`
+	Vehicle entityVehicle.Vehicle `json:"vehicle"`
+
+	IsGuilty bool   `json:"is_guilty"`
+	Injuries string `json:"injuries"`
+
+	Violations []entityViolation.Violation `json:"violations"`
+}
+
+type PenaltyResponse struct {
+	ID            int       `json:"id"`
+	ParticipantID int       `json:"participant_id"`
+	Amount        float64   `json:"amount"`
+	IssuedBy      *int      `json:"issued_by,omitempty"`
+	IssueDate     time.Time `json:"issue_date"`
+	Status        string    `json:"status"`
+}
+
+type PenaltyListResponse struct {
+	Penalties []PenaltyResponse `json:"penalties"`
+}
+
+type ReportResponse struct {
+	ID          int       `json:"id"`
+	AccidentID  int       `json:"accident_id"`
+	InspectorID *int      `json:"inspector_id,omitempty"`
+	ReportText  string    `json:"report_text"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type DriverAccidentStatResponse struct {
+	DriverID        int    `json:"driver_id"`
+	FullName        string `json:"full_name"`
+	ExperienceYears int    `json:"experience_years"`
+	AccidentsCount  int    `json:"accidents_count"`
+	GuiltyCount     int    `json:"guilty_count"`
+}
+
+type DriverPenaltySummaryResponse struct {
+	DriverID       int     `json:"driver_id"`
+	FullName       string  `json:"full_name"`
+	PenaltiesTotal int     `json:"penalties_total"`
+	TotalAmount    float64 `json:"total_amount"`
+	PaidAmount     float64 `json:"paid_amount"`
+	UnpaidAmount   float64 `json:"unpaid_amount"`
 }
