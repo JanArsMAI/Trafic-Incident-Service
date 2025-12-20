@@ -1,0 +1,1660 @@
+basePath: /
+definitions:
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_driver.Driver:
+    properties:
+      createdAt:
+        type: string
+      dateOfBirth:
+        type: string
+      experience:
+        type: integer
+      fullname:
+        type: string
+      id:
+        type: integer
+      license:
+        type: string
+      licenseIssueDate:
+        type: string
+      totalAccidents:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_inspector.Inspector:
+    properties:
+      createdAt:
+        type: string
+      department:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      number:
+        type: string
+      rank:
+        type: string
+      userId:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_vehicle.Vehicle:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      model:
+        type: string
+      number:
+        type: string
+      owner:
+        type: integer
+      type:
+        type: string
+      year:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_violation.Violation:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_weather.Weather:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      precipitation:
+        type: string
+      roadCondition:
+        type: string
+      temperature:
+        format: float64
+        type: number
+      visibility:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentDTO:
+    properties:
+      date_time:
+        type: string
+      inspector_id:
+        type: integer
+      location:
+        type: string
+      severity:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentFullParticipant:
+    properties:
+      driver:
+        $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_driver.Driver'
+      driver_id:
+        type: integer
+      injuries:
+        type: string
+      is_guilty:
+        type: boolean
+      participant_id:
+        type: integer
+      vehicle:
+        $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_vehicle.Vehicle'
+      vehicle_id:
+        type: integer
+      violations:
+        items:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_violation.Violation'
+        type: array
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddDriverDto:
+    properties:
+      date_birth:
+        type: string
+      experience:
+        type: integer
+      license_issue_date:
+        type: string
+      license_number:
+        type: string
+      name:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddInspector:
+    properties:
+      badge_number:
+        type: string
+      department:
+        type: string
+      name:
+        type: string
+      rank:
+        type: string
+      userid:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantDTO:
+    properties:
+      driver_id:
+        type: integer
+      injuries:
+        type: string
+      is_guilty:
+        type: boolean
+      vehicle_id:
+        type: integer
+      violations:
+        items:
+          type: integer
+        type: array
+    required:
+    - driver_id
+    - vehicle_id
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantViolationsDTO:
+    properties:
+      violations:
+        items:
+          type: integer
+        type: array
+    required:
+    - violations
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddPenaltyDTO:
+    properties:
+      amount:
+        type: number
+      participant_id:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddReportDTO:
+    properties:
+      accident_id:
+        type: integer
+      report_text:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddUserDto:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddVehicleDto:
+    properties:
+      model:
+        type: string
+      number:
+        type: string
+      owner:
+        type: integer
+      type:
+        type: string
+      year:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.CreateAccidentDTO:
+    properties:
+      accident:
+        $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentDTO'
+      participants:
+        items:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantDTO'
+        type: array
+      weather:
+        $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.WeatherDTO'
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverAccidentStatResponse:
+    properties:
+      accidents_count:
+        type: integer
+      driver_id:
+        type: integer
+      experience_years:
+        type: integer
+      full_name:
+        type: string
+      guilty_count:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverPenaltySummaryResponse:
+    properties:
+      driver_id:
+        type: integer
+      full_name:
+        type: string
+      paid_amount:
+        type: number
+      penalties_total:
+        type: integer
+      total_amount:
+        type: number
+      unpaid_amount:
+        type: number
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverResponse:
+    properties:
+      accidents:
+        type: integer
+      birthdate:
+        type: string
+      created_at:
+        type: string
+      experience:
+        type: integer
+      full_name:
+        type: string
+      id:
+        type: integer
+      license_exp_date:
+        type: string
+      license_id:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriversResponse:
+    properties:
+      drivers:
+        items:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverResponse'
+        type: array
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.FullAccidentReport:
+    properties:
+      accident_id:
+        type: integer
+      date_time:
+        type: string
+      inspector:
+        $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_inspector.Inspector'
+      inspector_id:
+        type: integer
+      location:
+        type: string
+      participants:
+        items:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AccidentFullParticipant'
+        type: array
+      severity:
+        type: string
+      weather:
+        $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_domain_weather.Weather'
+      weather_id:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.InspectorResponse:
+    properties:
+      created_at:
+        type: string
+      department:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      number:
+        type: string
+      rank:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.LoginDto:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantDTO:
+    properties:
+      participant:
+        $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantEntityDTO'
+      violations:
+        items:
+          type: integer
+        type: array
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ParticipantEntityDTO:
+    properties:
+      driver_id:
+        type: integer
+      injuries:
+        type: string
+      is_guilty:
+        type: boolean
+      vehicle_id:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyListResponse:
+    properties:
+      penalties:
+        items:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyResponse'
+        type: array
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyResponse:
+    properties:
+      amount:
+        type: number
+      id:
+        type: integer
+      issue_date:
+        type: string
+      issued_by:
+        type: integer
+      participant_id:
+        type: integer
+      status:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ReportResponse:
+    properties:
+      accident_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      inspector_id:
+        type: integer
+      report_text:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateAccidentDTO:
+    properties:
+      date_time:
+        type: string
+      inspector_id:
+        type: integer
+      location:
+        type: string
+      severity:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateDriverDto:
+    properties:
+      date_birth:
+        type: string
+      experience:
+        type: integer
+      license:
+        type: string
+      license_issue_date:
+        type: string
+      name:
+        type: string
+      new_license:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateInspector:
+    properties:
+      badge_number:
+        type: string
+      department:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      rank:
+        type: string
+      userid:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdatePenaltyDTO:
+    properties:
+      amount:
+        type: number
+      status:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateReportDTO:
+    properties:
+      report_text:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateUserDto:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateVehicleDto:
+    properties:
+      model:
+        type: string
+      number:
+        type: string
+      owner:
+        type: integer
+      type:
+        type: string
+      year:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateWeatherDTO:
+    properties:
+      description:
+        type: string
+      precipitation:
+        type: string
+      road_condition:
+        type: string
+      temperature:
+        type: number
+      visibility:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UserResponse'
+        type: array
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.VehicleResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      model:
+        type: string
+      number:
+        type: string
+      owner:
+        type: integer
+      type:
+        type: string
+      year:
+        type: integer
+    type: object
+  github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.WeatherDTO:
+    properties:
+      description:
+        type: string
+      precipitation:
+        type: string
+      road_condition:
+        type: string
+      temperature:
+        type: number
+      visibility:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления пользователями.
+  title: Traffic Incident Service API
+  version: "1.0"
+paths:
+  /accidents/{id}/participants:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет нового участника в указанное ДТП
+      parameters:
+      - description: ID ДТП
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные участника ДТП
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Участник успешно добавлен
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: ДТП или водитель не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "409":
+          description: Участник уже существует
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавить участника ДТП
+      tags:
+      - ДТП
+  /accidents/add:
+    post:
+      consumes:
+      - application/json
+      description: Ручка позволяет инспектору зарегистрировать новый дорожный инцидент.
+      parameters:
+      - description: Данные нового ДТП
+        in: body
+        name: accident
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.CreateAccidentDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ID созданного ДТП
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Ошибка валидации входных данных
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "403":
+          description: Доступ запрещён. Пользователь не является инспектором
+          schema:
+            type: string
+        "404":
+          description: Сущность, на которую есть ссылка, не найдена
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавление нового инцидента (ДТП)
+      tags:
+      - ДТП
+  /accidents/get/{id}:
+    get:
+      description: Возвращает расширенный отчёт о ДТП с указанием погодных условий,
+        инспектора, участников, их транспортных средств и нарушений.
+      parameters:
+      - description: ID ДТП
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Полный отчёт о ДТП
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.FullAccidentReport'
+        "400":
+          description: Некорректный ID или ошибка запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: ДТП с указанным ID не найдено
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить полную информацию о ДТП
+      tags:
+      - ДТП
+  /accidents/participants/{id}:
+    delete:
+      description: Удаляет участника из ДТП
+      parameters:
+      - description: ID участника ДТП
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Участник удалён
+        "400":
+          description: Некорректный ID
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Участник не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Удалить участника ДТП
+      tags:
+      - ДТП
+  /accidents/participants/{id}/violations:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет одно или несколько нарушений участнику ДТП
+      parameters:
+      - description: ID участника ДТП
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Список нарушений
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddParticipantViolationsDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Нарушения успешно добавлены
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Участник не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "409":
+          description: Нарушение уже добавлено
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавить нарушения участнику ДТП
+      tags:
+      - ДТП
+  /accidents/participants/{id}/violations/{violation_id}:
+    delete:
+      description: Удаляет конкретное нарушение у участника ДТП
+      parameters:
+      - description: ID участника ДТП
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: ID нарушения
+        in: path
+        name: violation_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Нарушение удалено
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Участник или нарушение не найдено
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Удалить нарушение у участника ДТП
+      tags:
+      - ДТП
+  /accidents/update/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Позволяет инспектору обновить сведения об уже существующем ДТП.
+        Обновляться могут только переданные поля (частичное обновление).
+      parameters:
+      - description: ID инцидента
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления ДТП
+        in: body
+        name: accident
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateAccidentDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Инцидент успешно обновлён
+          schema:
+            type: string
+      summary: Обновление данных ДТП
+      tags:
+      - ДТП
+  /accidents/update_weather/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет погодные условия по указанному ID. Можно передать только
+        те поля, которые требуется изменить.
+      parameters:
+      - description: ID погодной записи
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateWeatherDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Погода успешно обновлена
+        "400":
+          description: Некорректные данные или отсутствуют поля для обновления
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Запись о погоде не найдена
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Обновить данные о погоде
+      tags:
+      - ДТП
+  /drivers/add:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового водителя по переданным данным
+      parameters:
+      - description: Данные водителя
+        in: body
+        name: driver
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddDriverDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'driver_id: ID созданного водителя'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректные данные или неверный формат даты
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "409":
+          description: Водитель с таким номером лицензии уже существует
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавить нового водителя
+      tags:
+      - Водители
+  /drivers/get_by_license/{license}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает данные водителя
+      parameters:
+      - description: Номер лицензии
+        in: path
+        name: license
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverResponse'
+        "400":
+          description: Пустой license
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Водитель не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить водителя по номеру лицензии
+      tags:
+      - Водители
+  /drivers/get_by_name/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех водителей с указанным именем (частичное
+        совпадение допускается)
+      parameters:
+      - description: Имя водителя
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriversResponse'
+        "400":
+          description: Пустое имя
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить список водителей по имени
+      tags:
+      - Водители
+  /drivers/get_penalties:
+    get:
+      description: 'Возвращает финансовую аналитику по штрафам для каждого водителя:
+        общее количество штрафов, общую сумму, оплаченные и неоплаченные штрафы.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сводка штрафов по водителям
+          schema:
+            items:
+              $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverPenaltySummaryResponse'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить сводку штрафов по водителям
+      tags:
+      - Водители
+  /drivers/get_stats:
+    get:
+      description: 'Возвращает общую статистику по всем водителям: стаж, количество
+        ДТП и количество ДТП, где водитель признан виновным.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список статистики по водителям
+          schema:
+            items:
+              $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.DriverAccidentStatResponse'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить статистику ДТП по водителям
+      tags:
+      - Водители
+  /drivers/update:
+    patch:
+      consumes:
+      - application/json
+      description: Частичное обновление данных водителя по номеру лицензии
+      parameters:
+      - description: Данные для обновления
+        in: body
+        name: driver
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateDriverDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Некорректные данные
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Водитель не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "409":
+          description: Новый номер лицензии уже используется
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Обновить данные водителя
+      tags:
+      - Водители
+  /inspectors/add:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового инспектора в системе. Пользователь должен иметь
+        роль "inspector", иначе создание невозможно.
+      parameters:
+      - description: Данные нового инспектора
+        in: body
+        name: inspector
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddInspector'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ID созданного инспектора
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Ошибка в теле запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Пользователь с таким ID не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "409":
+          description: Инспектор с таким жетоном уже существует
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавить нового инспектора
+      tags:
+      - Инспекторы
+  /inspectors/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает полную информацию об инспекторе по его ID.
+      parameters:
+      - description: ID инспектора
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация об инспекторе
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.InspectorResponse'
+        "400":
+          description: Некорректный ID
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Инспектор не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить данные инспектора
+      tags:
+      - Инспекторы
+  /inspectors/update:
+    patch:
+      consumes:
+      - application/json
+      description: Частично обновляет данные инспектора. Можно изменять имя, номер
+        жетона, отдел, звание и user_id.
+      parameters:
+      - description: Изменяемые данные инспектора
+        in: body
+        name: inspector
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateInspector'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Инспектор успешно обновлён
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Инспектор или назначенный пользователь не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "409":
+          description: Инспектор с таким номером жетона уже существует
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Обновить данные инспектора
+      tags:
+      - Инспекторы
+  /penalties:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт штраф для участника ДТП. Инспектор определяется по access_token.
+      parameters:
+      - description: Данные для создания штрафа
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddPenaltyDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Штраф успешно создан
+        "400":
+          description: Некорректные данные
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Участник или инспектор не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавить штраф участнику ДТП
+      tags:
+      - Штрафы
+  /penalties/{id}:
+    get:
+      description: Возвращает информацию о штрафе
+      parameters:
+      - description: ID штрафа
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyResponse'
+        "400":
+          description: Некорректный ID
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Штраф не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить штраф по ID
+      tags:
+      - Штрафы
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет сумму и/или статус штрафа
+      parameters:
+      - description: ID штрафа
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления штрафа
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdatePenaltyDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Штраф успешно обновлён
+        "400":
+          description: Некорректные данные
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Штраф не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Обновить штраф
+      tags:
+      - Штрафы
+  /penalties/{id}/all:
+    get:
+      description: Возвращает список всех штрафов конкретного участника
+      parameters:
+      - description: ID участника ДТП
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.PenaltyListResponse'
+        "400":
+          description: Некорректный ID участника
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Участник не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить штрафы участника ДТП
+      tags:
+      - Штрафы
+  /reports:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт отчёт по указанному ДТП. Отчёт привязывается к текущему
+        инспектору.
+      parameters:
+      - description: Данные для создания отчёта
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddReportDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Отчёт успешно создан
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: ДТП или инспектор не найдены
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавить отчёт по ДТП
+      tags:
+      - Отчёты по дтп
+  /reports/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет текст отчёта по его ID
+      parameters:
+      - description: ID отчёта
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новый текст отчёта
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateReportDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Отчёт успешно обновлён
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Отчёт не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Обновить отчёт по ДТП
+      tags:
+      - Отчёты по дтп
+  /reports/accidents/{id}:
+    get:
+      description: Возвращает отчёт, связанный с указанным ДТП
+      parameters:
+      - description: ID ДТП
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ReportResponse'
+        "400":
+          description: Некорректный ID ДТП
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Отчёт не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить отчёт по ДТП
+      tags:
+      - Отчёты по дтп
+  /users/add:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя. Доступно только администратору.
+      parameters:
+      - description: Данные нового пользователя
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddUserDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ID созданного пользователя
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Некорректные данные / email занят / неверная роль
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавление пользователя
+      tags:
+      - Пользователи
+  /users/delete/{id}:
+    delete:
+      description: Удаляет пользователя по ID. Доступно только администратору.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Пользователь успешно удалён
+        "400":
+          description: Некорректный ID
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Удаление пользователя
+      tags:
+      - Пользователи
+  /users/get_all:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает пользователей постранично (через query-параметры chunk
+        и size)
+      parameters:
+      - description: Номер страницы (chunk)
+        in: query
+        name: chunk
+        required: true
+        type: integer
+      - description: Размер страницы (size)
+        in: query
+        name: size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UsersResponse'
+        "400":
+          description: Неверные параметры
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить список всех пользователей
+      tags:
+      - Пользователи
+  /users/get_user/{name}:
+    get:
+      description: Возвращает данные пользователя по имени. Доступно только администратору.
+      parameters:
+      - description: Имя пользователя
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные пользователя
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UserResponse'
+        "400":
+          description: Пустое имя
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получение пользователя по имени
+      tags:
+      - Пользователи
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизует пользователя и устанавливает cookie access_token.
+      parameters:
+      - description: Email и пароль
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.LoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Авторизация успешна, cookie установлена
+        "400":
+          description: Ошибка парсинга JSON
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "401":
+          description: Неверный пароль
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Авторизация пользователя
+      tags:
+      - Авторизация
+  /users/logout:
+    post:
+      description: Удаляет cookie access_token и завершает пользовательскую сессию.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сообщение об успешном выходе
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Необходимо выполнить вход
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Выход из системы
+      tags:
+      - Авторизация
+  /users/update:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет данные пользователя. Администратор может обновлять всех,
+        обычный пользователь — только себя.
+      parameters:
+      - description: Новые данные пользователя
+        in: body
+        name: user
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateUserDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ID обновлённого пользователя и статус
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректные данные / неверная роль / неверный email
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "403":
+          description: Нет доступа
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Обновление пользователя
+      tags:
+      - Пользователи
+  /vehicles/{number}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает информацию о транспортном средстве по его государственному
+        номеру.
+      parameters:
+      - description: номер ТС
+        in: path
+        name: number
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о транспортном средстве
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.VehicleResponse'
+        "400":
+          description: Пустой номер
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: ТС не найдено
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Получить транспортное средство по номеру
+      tags:
+      - Транспорт
+  /vehicles/add:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новое транспортное средство. Номер должен быть уникальным.
+      parameters:
+      - description: Данные нового транспорта
+        in: body
+        name: data
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.AddVehicleDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ID созданного ТС
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Неверные данные
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "409":
+          description: ТС с таким номером уже существует
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Добавить транспортное средство
+      tags:
+      - Транспорт
+  /vehicles/update:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет переданные поля транспортного средства по его номеру.
+      parameters:
+      - description: Данные для обновления ТС
+        in: body
+        name: data
+        schema:
+          $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.UpdateVehicleDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сообщение об успешном обновлении
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверные данные
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "404":
+          description: ТС не найдено
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/github_com_JanArsMAI_Trafic-Incident-Service_git_internal_presentation_dto.ErrorResponse'
+      summary: Обновить данные транспортного средства
+      tags:
+      - Транспорт
+securityDefinitions:
+  BearerAuth:
+    in: cookie
+    name: access_token
+    type: apiKey
+swagger: "2.0"
